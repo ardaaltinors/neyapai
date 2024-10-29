@@ -2,125 +2,148 @@ import os
 import requests
 import streamlit as st
 
-# API endpoint for completions
-COMPLETIONS_URL = os.getenv("COMPLETIONS_URL", "http://127.0.0.1:8000/llm/completions")
+API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
+COMPLETIONS_URL = f"{API_BASE_URL}/llm/completions"
+START_COURSE_URL = f"{API_BASE_URL}/llm/start-course"
 
-# Example Bearer Token (if needed)
-# USER_BEARER_TOKEN = "your_default_bearer_token_here"
+def start_course(course_id: str, user_id: str = "default_user"):
+    try:
+        response = requests.post(
+            f"{START_COURSE_URL}/{course_id}",
+            params={"user_id": user_id}
+        )
+        response.raise_for_status()
+        return response.json()
+    except Exception as e:
+        st.error(f"Error starting course: {str(e)}")
+        return None
 
-# Initialize session state for messages
+# Initialize session state
 if "messages" not in st.session_state:
     st.session_state.messages = []
+    
+if "course_started" not in st.session_state:
+    st.session_state.course_started = False
+    
+if "current_section" not in st.session_state:
+    st.session_state.current_section = 0
 
-# Sidebar with About and Example Questions
-with st.sidebar:
-    st.header("About")
-    st.markdown(
-        """
-        This chatbot interacts with a local Language Model API to generate responses based on your input.
-        Simply enter your message, and the assistant will reply accordingly.
-        """
-    )
+# Page layout
+st.set_page_config(layout="wide")
 
-    st.header("Örnek Sorular")
-    st.markdown("- Bugün hangi konuları çalışmalıyım?")
-    st.markdown("- Yarın sınav var, hangi konulara çalışmalıyım?")
-    st.markdown("- Ders çalışırken nasıl daha verimli olabilirim?")
+# Main UI
+col1, col2 = st.columns([3, 1])
 
-# Main chatbot section
-st.title("LLM Assistant Chatbot")
-st.info(
-    """Ask me anything, and I'll do my best to assist you!"""
-)
+with col1:
+    st.title("Interactive Course Assistant")
 
-# Display chat messages
-for message in st.session_state.messages:
-    if message["role"] == "user":
-        with st.chat_message("user"):
-            st.markdown(message["content"])
-    else:
-        with st.chat_message("assistant"):
-            st.markdown(message["content"])
-            if message.get("intermediate_steps"):
-                with st.expander("Intermediate Steps"):
-                    st.write(message["intermediate_steps"])
+    # Course selection and start
+    if not st.session_state.course_started:
+        course_id = st.selectbox(
+            "Select a course:",
+            ["solar_system", "basic_math", "programming_101"]
+        )
+        
+        if st.button("Start Course"):
+            result = start_course(course_id)
+            if result:
+                welcome_message = result["message"]
+                st.session_state.messages.append(welcome_message)
+                st.session_state.course_started = True
+                st.rerun()
 
-# User input
-if prompt := st.chat_input("What do you want to know?"):
-    # Display user message
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
+    # Chat interface
+    if st.session_state.course_started:
+        # Display chat messages
+        for message in st.session_state.messages:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+        
+        # Chat input
+        if prompt := st.chat_input("Type your message here..."):
+            # Add user message to chat
+            st.session_state.messages.append({
+                "role": "user",
+                "content": prompt
+            })
+            
+            # Get AI response
+            try:
+                response = requests.post(
+                    COMPLETIONS_URL,
+                    json={"input": prompt},
+                    params={"user_id": "default_user"}
+                )
+                response.raise_for_status()
+                
+                ai_message = {
+                    "role": "assistant",
+                    "content": response.json()["output"]
+                }
+                st.session_state.messages.append(ai_message)
+                st.rerun()
+                
+            except Exception as e:
+                st.error(f"Error: {str(e)}")
 
-    # Prepare the payload
-    payload = {
-        "input": prompt
-    }
-
-    # Set the headers
-    headers = {
-        "accept": "application/json",
-        "Content-Type": "application/json"
-    }
-
-    # Send the POST request to the API
-    with st.spinner("Generating response..."):
+# Sidebar with course progress
+with col2:
+    if st.session_state.course_started:
+        st.sidebar.title("Course Progress")
+        
+        # Get course content and current progress
         try:
-            response = requests.post(COMPLETIONS_URL, headers=headers, json=payload)
-            response.raise_for_status()  # Raise an error for bad status codes
-            data = response.json()
-
-            # Extract output and intermediate steps
-            output = data.get("output", "No response received.")
-            intermediate_steps = data.get("intermediate_steps", [])
-
-            # Append assistant's response to messages
-            st.session_state.messages.append({
-                "role": "assistant",
-                "content": output,
-                "intermediate_steps": intermediate_steps
-            })
-
-            # Display assistant's response
-            with st.chat_message("assistant"):
-                st.markdown(output)
-                if intermediate_steps:
-                    with st.expander("Intermediate Steps"):
-                        for step in intermediate_steps:
-                            st.write(step)
-
-        except requests.exceptions.HTTPError as http_err:
-            error_message = f"HTTP error occurred: {http_err}"
-            st.error(error_message)
-            st.session_state.messages.append({
-                "role": "assistant",
-                "content": error_message
-            })
-        except requests.exceptions.ConnectionError:
-            error_message = "Could not connect to the API. Is it running?"
-            st.error(error_message)
-            st.session_state.messages.append({
-                "role": "assistant",
-                "content": error_message
-            })
-        except requests.exceptions.Timeout:
-            error_message = "The request timed out."
-            st.error(error_message)
-            st.session_state.messages.append({
-                "role": "assistant",
-                "content": error_message
-            })
-        except requests.exceptions.RequestException as err:
-            error_message = f"An error occurred: {err}"
-            st.error(error_message)
-            st.session_state.messages.append({
-                "role": "assistant",
-                "content": error_message
-            })
-        except ValueError:
-            error_message = "Failed to parse the response from the API."
-            st.error(error_message)
-            st.session_state.messages.append({
-                "role": "assistant",
-                "content": error_message
-            })
+            # Get current course state
+            response_state = requests.get(f"{API_BASE_URL}/llm/course-state/default_user")
+            course_state = response_state.json()
+            current_section = course_state.get("current_section", 0)
+            current_step = course_state.get("current_step", 0)
+            
+            # Get course content
+            response = requests.get(f"{API_BASE_URL}/llm/course-content/solar_system")
+            course_data = response.json()
+            
+            # Progress bars
+            total_sections = len(course_data["sections"])
+            section_progress = (current_section + 1) / total_sections
+            
+            current_section_data = course_data["sections"][current_section]
+            total_steps = len(current_section_data["steps"])
+            step_progress = (current_step + 1) / total_steps
+            
+            st.sidebar.subheader("Overall Progress")
+            st.sidebar.progress(section_progress)
+            
+            st.sidebar.subheader("Current Section Progress")
+            st.sidebar.progress(step_progress)
+            
+            # Display sections with status
+            for section in course_data["sections"]:
+                section_index = section["order"] - 1
+                if section_index < current_section:
+                    st.sidebar.success(f"✅ {section['title']}")
+                elif section_index == current_section:
+                    steps_text = f"(Step {current_step + 1}/{total_steps})"
+                    st.sidebar.info(f"📚 {section['title']} {steps_text}")
+                else:
+                    st.sidebar.text(f"⏳ {section['title']}")
+            
+            # Display current content
+            if current_section_data:
+                with st.sidebar.expander("Current Section Details"):
+                    st.markdown(current_section_data["content"])
+                    
+                if "Öğrenme Hedefleri:" in current_section_data["content"]:
+                    with st.sidebar.expander("Learning Objectives"):
+                        objectives = current_section_data["content"].split("Öğrenme Hedefleri:")[1].strip()
+                        st.markdown(objectives)
+            
+            # Display completion status
+            if current_section >= total_sections - 1 and current_step >= total_steps - 1:
+                st.sidebar.success("🎉 Course Completed!")
+            else:
+                remaining_sections = total_sections - current_section
+                st.sidebar.info(f"📝 {remaining_sections} sections remaining")
+                    
+        except Exception as e:
+            st.sidebar.error(f"Error loading course content: {str(e)}")

@@ -1,0 +1,174 @@
+title: "Güneş Sistemi"
+description: "Güneş sistemi ve gezegenler hakkında kapsamlı bir keşif yolculuğu"
+sections:
+  - title: "1. Güneş: Sistemimizin Kalbi"
+    content: |
+      Güneş, güneş sistemimizin merkezinde yer alan devasa bir yıldızdır. Sistemimizin tüm kütlesinin %99.86'sını oluşturur.
+
+      Temel Özellikleri:
+      - Yüzey sıcaklığı: 5,500°C
+      - Çekirdek sıcaklığı: 15 milyon °C
+      - Çap: 1.4 milyon kilometre (Dünya'nın 109 katı)
+      - Yaş: 4.6 milyar yıl
+      - Kütlesi: 2 x 10^30 kilogram (Dünya'nın 333,000 katı)
+
+      Güneş'in Yapısı:
+      1. Çekirdek: Nükleer füzyonun gerçekleştiği merkezi bölge
+      2. Radyatif Bölge: Enerjinin ışınım yoluyla taşındığı katman
+      3. Konvektif Bölge: Enerjinin konveksiyon yoluyla taşındığı dış katman
+      4. Fotosfer: Görünür yüzey
+      5. Kromosfer: Güneş atmosferinin alt katmanı
+      6. Korona: Güneş'in dış atmosferi
+
+      Öğrenme Hedefleri:
+      - Güneş'in temel özelliklerini kavrama
+      - Güneş'in iç yapısını anlama
+      - Güneş enerjisinin oluşum sürecini öğrenme
+    order: 1
+    steps:
+      - step: 1
+        content: "Merhaba! Güneş Sistemi dersimize hoş geldin. Bugün ilk olarak sistemimizin kalbi olan Güneş'i öğreneceğiz. Başlamaya hazır mısın?"
+        expected_responses: ["evet", "hazırım", "başlayalım"]
+        next_action: "CONTINUE"
+      
+      - step: 2
+        content: "Harika! Öncelikle Güneş'in temel özelliklerinden bahsedelim. Güneş, sistemimizin merkezinde yer alan devasa bir yıldızdır ve sistemin kütlesinin %99.86'sını oluşturur. Güneş'in yüzey sıcaklığı 5,500°C'dir ve çekirdeğinde sıcaklık 15 milyon °C'ye ulaşır. Çapı 1.4 milyon kilometre olup, bu Dünya'nın 109 katıdır. 
+
+        Bu bilgiler ışığında, sence Güneş neden bu kadar sıcaktır?"
+        expected_responses: ["füzyon", "nükleer", "hidrojen", "helyum", "çekirdek"]
+        next_action: "CONTINUE"
+      
+      - step: 3
+        content: "Çok doğru! Güneş'in çekirdeğinde nükleer füzyon gerçekleşir. Bu süreçte hidrojen atomları birleşerek helyuma dönüşür ve muazzam miktarda enerji açığa çıkar. 
+
+        Şimdi Güneş'in yapısını inceleyelim. Güneş'in 6 ana katmanı vardır:
+        1. Çekirdek: Nükleer füzyonun gerçekleştiği merkezi bölge
+        2. Radyatif Bölge: Enerjinin ışınım yoluyla taşındığı katman
+        3. Konvektif Bölge: Enerjinin konveksiyon yoluyla taşındığı dış katman
+        4. Fotosfer: Görünür yüzey
+        5. Kromosfer: Güneş atmosferinin alt katmanı
+        6. Korona: Güneş'in dış atmosferi
+
+        Bu katmanlardan hangisi hakkında daha detaylı bilgi almak istersin?"
+        expected_responses: ["çekirdek", "radyatif", "konvektif", "fotosfer", "kromosfer", "korona"]
+        next_action: "CONTINUE"
+      
+      - step: 4
+        content: "Güzel! Şimdi öğrendiklerimizi özetleyelim:
+        - Güneş, sistemimizin merkezidir ve tüm kütlenin %99.86'sını oluşturur
+        - Yüzey sıcaklığı 5,500°C, çekirdek sıcaklığı 15 milyon °C'dir
+        - Enerji, çekirdekte gerçekleşen nükleer füzyon ile üretilir
+        - 6 ana katmandan oluşur ve her katmanın özel görevi vardır
+
+        Bu bilgiler ışığında, sence Güneş'in yaşam için en önemli özelliği nedir?"
+        expected_responses: ["enerji üretmesi", "ısı", "ışık", "yaşam kaynağı"]
+        next_action: "NEXT"
+
+  - title: "2. İç Gezegenler: Karasal Dünyalar"
+    content: |
+      İç gezegenler, Güneş'e en yakın dört gezegeni kapsar. Bu gezegenler karasal (terrestrial) yapıdadır.
+
+      Merkür:
+      - Güneş'e en yakın gezegen
+      - En küçük gezegen (Plüton artık gezegen sayılmıyor)
+      - Yüzey sıcaklığı: Gündüz 430°C, gece -180°C
+      - Atmosferi yok denecek kadar az
+      - Bir Merkür günü 176 Dünya günü
+
+      Venüs:
+      - "Dünya'nın ikizi" olarak bilinir (boyut açısından)
+      - En sıcak gezegen (yüzey sıcaklığı 462°C)
+      - Sera etkisinin en yoğun görüldüğü gezegen
+      - Geriye doğru dönen tek gezegen
+      
+      Dünya:
+      - Bilinen yaşamın tek evi
+      - Sıvı su bulunduran tek gezegen
+      - Manyetik alanı ve koruyucu atmosferi var
+      - Tek doğal uydusu: Ay
+      
+      Mars:
+      - "Kızıl Gezegen" olarak bilinir
+      - Geçmişte su ve yaşam potansiyeli
+      - İki uydusu var: Phobos ve Deimos
+      - İnsanlığın gelecekteki muhtemel evi
+
+      Öğrenme Hedefleri:
+      - İç gezegenlerin ortak özelliklerini kavrama
+      - Her gezegenin kendine has özelliklerini öğrenme
+      - Gezegenleri karşılaştırabilme
+    order: 2
+    steps:
+      - step: 1
+        content: "Şimdi iç gezegenleri öğrenmeye başlayalım. İç gezegenler, Güneş'e en yakın dört gezegeni kapsar. Bunlar sırasıyla hangi gezegenlerdir, biliyor musun?"
+        expected_responses: ["merkür", "venüs", "dünya", "mars"]
+        next_action: "CONTINUE"
+      - step: 2
+        content: "Harika! Şimdi Merkür'ü inceleyelim. Merkür, Güneş'e en yakın ve en küçük gezegendir. Gündüz ve gece sıcaklıkları arasında çok büyük fark vardır. Sence bunun nedeni ne olabilir?"
+        expected_responses: ["atmosfer", "koruma", "yakınlık", "güneş"]
+        next_action: "CONTINUE"
+      - step: 3
+        content: "Venüs'e geçelim. Venüs'ün en ilginç özelliği nedir biliyor musun? İpucu: Sıcaklıkla ilgili bir rekor kırıyor."
+        expected_responses: ["en sıcak", "462", "sera etkisi"]
+        next_action: "CONTINUE"
+      - step: 4
+        content: "Dünya'mızı konuşalım. Dünya'yı diğer gezegenlerden ayıran en önemli özellik nedir?"
+        expected_responses: ["yaşam", "su", "atmosfer", "oksijen"]
+        next_action: "CONTINUE"
+      - step: 5
+        content: "Son olarak Mars'a bakalım. Mars'a neden 'Kızıl Gezegen' deniyor, biliyor musun?"
+        expected_responses: ["demir", "kırmızı", "oksit", "toprak"]
+        next_action: "NEXT"
+
+  - title: "3. Dış Gezegenler: Gaz Devleri"
+    content: |
+      Dış gezegenler, asteroid kuşağının ötesinde yer alan dört büyük gezegeni kapsar.
+
+      Jüpiter:
+      - Güneş sisteminin en büyük gezegeni
+      - Büyük Kırmızı Leke: 400 yıldır süren fırtına
+      - 79 bilinen uydusu var
+      - Güçlü manyetik alan
+      
+      Satürn:
+      - Halka sistemiyle ünlü
+      - Yoğunluğu sudan az
+      - 82 bilinen uydusu var
+      - En büyük uydusu Titan, atmosfere sahip
+      
+      Uranüs:
+      - Yan yatmış şekilde döner
+      - Soğuk bir gaz devi (-224°C)
+      - 27 bilinen uydusu var
+      
+      Neptün:
+      - En uzak gezegen
+      - Güçlü rüzgarlar (2,100 km/saat)
+      - 14 bilinen uydusu var
+
+      Öğrenme Hedefleri:
+      - Dış gezegenlerin yapısal özelliklerini anlama
+      - Gaz devlerinin ortak özelliklerini kavrama
+      - Uydu sistemlerinin önemini öğrenme
+    order: 3
+    steps:
+      - step: 1
+        content: "Dış gezegenlere hoş geldin! Bu gezegenler neden 'gaz devi' olarak adlandırılıyor, biliyor musun?"
+        expected_responses: ["gaz", "büyük", "hidrojen", "helyum"]
+        next_action: "CONTINUE"
+      - step: 2
+        content: "Jüpiter, güneş sisteminin en büyük gezegenidir. Üzerindeki Büyük Kırmızı Leke aslında nedir, tahmin edebilir misin?"
+        expected_responses: ["fırtına", "kasırga", "girdap"]
+        next_action: "CONTINUE"
+      - step: 3
+        content: "Satürn'ün en dikkat çekici özelliği nedir?"
+        expected_responses: ["halka", "halkalar", "ring"]
+        next_action: "CONTINUE"
+      - step: 4
+        content: "Uranüs'ün diğer gezegenlerden farklı olarak nasıl döndüğünü biliyor musun?"
+        expected_responses: ["yan", "yatık", "eğik"]
+        next_action: "CONTINUE"
+      - step: 5
+        content: "Son olarak Neptün'e geldik. Neptün'ün en etkileyici özelliği nedir?"
+        expected_responses: ["rüzgar", "fırtına", "hız"]
+        next_action: "NEXT"
