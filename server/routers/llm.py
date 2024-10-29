@@ -8,34 +8,30 @@ from server.database import db
 from datetime import datetime
 import logging
 
-router = APIRouter(
-    prefix="/llm",
-    tags=["LLM"]
-)
+router = APIRouter(prefix="/llm", tags=["LLM"])
 
 logger = logging.getLogger(__name__)
 chat_collection = db.get_collection("chat_history")
 course_collection = db.get_collection("courses")
+
 
 @router.post("/start-course/{course_id}")
 async def start_course(course_id: str, user_id: str = "default_user"):
     try:
         # Load course content
         course = load_course_content(course_id)
-        
+
         # Initialize chat with course context
         agent_executor = initialize_chat(
-            conversation_id=user_id,
-            chat_history=[],
-            course=course
+            conversation_id=user_id, chat_history=[], course=course
         )
-        
+
         # Create welcome message
         welcome_message = Message(
             role="assistant",
-            content=f"Merhaba! {course.title} dersine hoş geldin! Başlamaya hazır mısın?"
+            content=f"Merhaba! {course.title} dersine hoş geldin! Başlamaya hazır mısın?",
         )
-        
+
         # Store course state in database
         await course_collection.update_one(
             {"user_id": user_id},
@@ -44,283 +40,241 @@ async def start_course(course_id: str, user_id: str = "default_user"):
                     "course_id": course_id,
                     "current_section": 0,
                     "current_step": 0,
-                    "updated_at": datetime.utcnow()
+                    "updated_at": datetime.utcnow(),
                 }
             },
-            upsert=True
+            upsert=True,
         )
-        
+
         # Clear and initialize chat history
         await chat_collection.update_one(
             {"user_id": user_id},
             {
                 "$set": {
                     "messages": [welcome_message.dict()],
-                    "updated_at": datetime.utcnow()
+                    "updated_at": datetime.utcnow(),
                 }
             },
-            upsert=True
+            upsert=True,
         )
-        
+
         return {"message": welcome_message.dict()}
     except Exception as e:
         logger.error(f"Error starting course: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.post("/completions", response_model=LLMResponse)
 async def llm_completions(request: LLMRequest, user_id: str = "default_user"):
     try:
-        # Fetch course state and chat history
-        course_state = await course_collection.find_one({"user_id": user_id})
-        chat_history = await chat_collection.find_one({"user_id": user_id})
-        
+        course_state, chat_history = await fetch_user_data(user_id)
         if not course_state:
             raise HTTPException(status_code=400, detail="No active course found")
-            
-        # Load course content
-        course = load_course_content(course_state["course_id"])
-        current_section = course_state["current_section"]
-        current_step = course_state.get("current_step", 0)
-        
-        # Get current step
-        current_section_obj = course.sections[current_section]
-        current_step_obj = current_section_obj.steps[current_step]
-        
-        # Initialize chat with history and course context
-        messages_list = []
-        if chat_history and "messages" in chat_history:
-            messages_list = [
-                {
-                    "role": msg.get("role", ""),
-                    "content": msg.get("content", "")
-                }
-                for msg in chat_history["messages"]
-                if "role" in msg and "content" in msg
-            ]
-        
-        # Initialize agent_executor
-        agent_executor = initialize_chat(
-            conversation_id=user_id,
-            chat_history=messages_list,
-            course=course
-        )
-        
-        # Process user input and generate response
-        new_message = Message(role="user", content=request.input)
-        llm_output = ""
-        next_step = None
-        
-        # Check if current step has expected responses
-        if current_step_obj.expected_responses:
-            user_input_lower = request.input.lower()
-            
-            # Special handling for first step (ready to start)
-            if current_step == 0 and current_section == 0:
-                ready_responses = ["evet", "hazırım", "başlayalım", "evet hazırım"]
-                if any(resp in user_input_lower for resp in ready_responses):
-                    next_step = 1
-                    await course_collection.update_one(
-                        {"user_id": user_id},
-                        {
-                            "$set": {
-                                "current_step": next_step,
-                                "updated_at": datetime.utcnow()
-                            }
-                        }
-                    )
-                    llm_output = current_section_obj.steps[next_step].content
-                    return LLMResponse(output=llm_output)
-                else:
-                    llm_output = "Hazır olduğunda 'evet' yazabilirsin."
-                    return LLMResponse(output=llm_output)
-            
-            # Regular flow for other steps
-            # Check for skip/pass responses
-            skip_responses = ["bilmiyorum", "hayır", "istemiyorum", "geç", "pass", "skip"]
-            if any(skip in user_input_lower for skip in skip_responses):
-                if current_step < len(current_section_obj.steps) - 1:
-                    next_step = current_step + 1
-                    llm_output = f"Anlamadığın noktaları açıklayayım:\n\n"
-                    llm_output += current_section_obj.steps[next_step].content
-            else:
-                # Send both user input, expected responses and course content to LLM for processing
-                context_prompt = f"""
-                MEVCUT DERS DURUMU:
-                {current_step_obj.content}
-                
-                ÖĞRENCİ CEVABI:
-                {user_input_lower}
-                
-                BEKLENEN CEVAPLAR:
-                {', '.join(current_step_obj.expected_responses) if current_step_obj.expected_responses else 'Beklenen cevap yok'}
-                
-                GÖREV:
-                1. Öğrencinin cevabını değerlendir
-                2. Eğer doğruysa, neden doğru olduğunu açıkla ve konuyu genişlet
-                3. Eğer yanlışsa, nazikçe düzelt ve doğru cevabı detaylı açıkla
-                4. Bir sonraki konuya geçiş yap
-                5. Öğrenciyi motive edici bir dille yanıt ver
-                
-                Yanıtını şu formatta ver:
-                DEĞERLENDİRME: (Doğru/Yanlış)
-                AÇIKLAMA: (Detaylı açıklama)
-                DEVAM: (Bir sonraki adımın içeriği)
-                """
-                
-                try:
-                    # Get AI response
-                    response = await agent_executor.ainvoke({"input": context_prompt})
-                    response_text = response.get("output", "")
-                    
-                    # Parse AI response
-                    parts = response_text.lower().split("\n")
-                    is_correct = "doğru" in parts[0] if parts else False
-                    
-                    # Extract explanation and continuation
-                    explanation = ""
-                    continuation = ""
-                    for part in parts:
-                        if "açıklama:" in part:
-                            explanation = part.split("açıklama:")[1].strip()
-                        elif "devam:" in part:
-                            continuation = part.split("devam:")[1].strip()
-                    
-                    # Move to next step
-                    if current_step < len(current_section_obj.steps) - 1:
-                        next_step = current_step + 1
-                        await course_collection.update_one(
-                            {"user_id": user_id},
-                            {
-                                "$set": {
-                                    "current_step": next_step,
-                                    "updated_at": datetime.utcnow()
-                                }
-                            }
-                        )
-                        
-                        # Combine explanation with next content
-                        if is_correct:
-                            llm_output = f"{explanation}\n\n{continuation}\n\n{current_section_obj.steps[next_step].content}"
-                        else:
-                            llm_output = f"{explanation}\n\nAma endişelenme! {continuation}\n\n{current_section_obj.steps[next_step].content}"
-                    
-                except Exception as e:
-                    logger.error(f"LLM processing error: {str(e)}")
-                    if current_step < len(current_section_obj.steps) - 1:
-                        next_step = current_step + 1
-                        llm_output = f"Cevabını değerlendirirken bir sorun oluştu. Devam edelim:\n\n{current_section_obj.steps[next_step].content}"
 
-        # Update step if needed
-        if next_step is not None:
-            await course_collection.update_one(
-                {"user_id": user_id},
-                {
-                    "$set": {
-                        "current_step": next_step,
-                        "updated_at": datetime.utcnow()
-                    }
-                }
-            )
-        
-        # Handle section transitions
-        if current_step == len(current_section_obj.steps) - 1:
-            # Check if this is the last question of the section
-            if "neler olurdu" in current_step_obj.content.lower() or "ne olurdu" in current_step_obj.content.lower():
-                # Process the answer first
-                context_prompt = f"""
-                MEVCUT DERS DURUMU:
-                {current_step_obj.content}
-                
-                ÖĞRENCİ CEVABI:
-                {user_input_lower}
-                
-                BEKLENEN CEVAPLAR:
-                {', '.join(current_step_obj.expected_responses) if current_step_obj.expected_responses else 'Beklenen cevap yok'}
-                
-                GÖREV:
-                1. Öğrencinin cevabını değerlendir
-                2. Bölüm sonu değerlendirmesi yap
-                3. Bir sonraki bölüme geçiş için hazırlık yap
-                
-                Yanıtını şu formatta ver:
-                DEĞERLENDİRME: (Öğrencinin cevabının değerlendirmesi)
-                ÖZET: (Bölümün kısa özeti)
-                GEÇİŞ: (Sonraki bölüme geçiş cümlesi)
-                """
-                
-                try:
-                    response = await agent_executor.ainvoke({"input": context_prompt})
-                    response_text = response.get("output", "")
-                    
-                    # Move to next section after providing feedback
-                    if current_section < len(course.sections) - 1:
-                        next_section = current_section + 1
-                        await course_collection.update_one(
-                            {"user_id": user_id},
-                            {
-                                "$set": {
-                                    "current_section": next_section,
-                                    "current_step": 0,
-                                    "updated_at": datetime.utcnow()
-                                }
-                            }
-                        )
-                        
-                        # Combine the evaluation with next section intro
-                        section_intro = f"\n\n{response_text}\n\nŞimdi {course.sections[next_section].title} bölümüne geçiyoruz.\n\n"
-                        section_intro += course.sections[next_section].steps[0].content
-                        llm_output = section_intro
-                    else:
-                        llm_output = f"\n\n{response_text}\n\nTebrikler! Tüm kursu başarıyla tamamladın! 🎉"
-                        
-                except Exception as e:
-                    logger.error(f"LLM processing error in section transition: {str(e)}")
-                    llm_output = "Cevabını değerlendirirken bir sorun oluştu."
-                    
-            else:
-                # Regular section transition
-                if current_section < len(course.sections) - 1:
-                    next_section = current_section + 1
-                    await course_collection.update_one(
-                        {"user_id": user_id},
-                        {
-                            "$set": {
-                                "current_section": next_section,
-                                "current_step": 0,
-                                "updated_at": datetime.utcnow()
-                            }
-                        }
-                    )
-                    
-                    section_intro = f"\n\nBu bölümü tamamladın. Şimdi {course.sections[next_section].title} bölümüne geçiyoruz.\n\n"
-                    section_intro += course.sections[next_section].steps[0].content
-                    llm_output = section_intro
-                else:
-                    llm_output = "\n\nTebrikler! Tüm kursu başarıyla tamamladın! 🎉"
-        
-        # Update chat history
-        assistant_message = Message(role="assistant", content=llm_output)
-        await chat_collection.update_one(
-            {"user_id": user_id},
-            {
-                "$push": {
-                    "messages": {
-                        "$each": [
-                            new_message.dict(),
-                            assistant_message.dict()
-                        ]
-                    }
-                },
-                "$set": {"updated_at": datetime.utcnow()}
-            },
-            upsert=True
+        course, current_section_obj, current_step_obj = load_course_details(
+            course_state
         )
-        
+        messages_list = prepare_chat_history(chat_history)
+
+        agent_executor = initialize_chat(
+            conversation_id=user_id, chat_history=messages_list, course=course
+        )
+
+        user_input = request.input.lower()
+        llm_output = await process_user_input(
+            user_input,
+            current_step_obj,
+            current_section_obj,
+            course_state,
+            agent_executor,
+            user_id,
+        )
+
+        await update_chat_history(user_id, request.input, llm_output)
         return LLMResponse(output=llm_output)
-        
+
     except Exception as e:
         logger.error(f"Error in llm_completions endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+async def fetch_user_data(user_id):
+    """Fetch user's course state and chat history."""
+    course_state = await course_collection.find_one({"user_id": user_id})
+    chat_history = await chat_collection.find_one({"user_id": user_id})
+    return course_state, chat_history
+
+
+def load_course_details(course_state):
+    """Load course details and current section/step information."""
+    course = load_course_content(course_state["course_id"])
+    current_section = course_state["current_section"]
+    current_step = course_state.get("current_step", 0)
+    current_section_obj = course.sections[current_section]
+    current_step_obj = current_section_obj.steps[current_step]
+    return course, current_section_obj, current_step_obj
+
+
+def prepare_chat_history(chat_history):
+    """Prepare chat history as a list of messages."""
+    if chat_history and "messages" in chat_history:
+        return [
+            {"role": msg.get("role", ""), "content": msg.get("content", "")}
+            for msg in chat_history["messages"]
+            if "role" in msg and "content" in msg
+        ]
+    return []
+
+
+async def process_user_input(
+    user_input,
+    current_step_obj,
+    current_section_obj,
+    course_state,
+    agent_executor,
+    user_id,
+):
+    """Process user input and determine appropriate response."""
+    if current_step_obj.expected_responses and check_for_ready_to_start(
+        user_input, course_state
+    ):
+        return await handle_ready_response(current_section_obj, course_state, user_id)
+
+    if check_for_skip_response(user_input):
+        return await handle_skip_response(current_section_obj, course_state, user_id)
+
+    context_prompt = create_context_prompt(current_step_obj, user_input)
+    response_text = await get_llm_response(agent_executor, context_prompt)
+
+    return await parse_and_update_steps(
+        response_text, current_step_obj, current_section_obj, course_state, user_id
+    )
+
+
+def check_for_ready_to_start(user_input, course_state):
+    """Check if user is ready to start the course."""
+    return course_state["current_step"] == 0 and "evet" in user_input
+
+
+def check_for_skip_response(user_input):
+    """Check if user wants to skip the step."""
+    skip_responses = ["bilmiyorum", "hayır", "istemiyorum", "geç", "pass", "skip"]
+    return any(skip in user_input for skip in skip_responses)
+
+
+async def handle_ready_response(current_section_obj, course_state, user_id):
+    """Handle ready response from user."""
+    next_step = 1
+    await update_course_step(user_id, next_step)
+    return current_section_obj.steps[next_step].content
+
+
+async def handle_skip_response(current_section_obj, course_state, user_id):
+    """Handle skip response and advance to next step."""
+    next_step = course_state["current_step"] + 1
+    await update_course_step(user_id, next_step)
+    return f"Anlamadığın noktaları açıklayayım:\n\n{current_section_obj.steps[next_step].content}"
+
+
+def create_context_prompt(current_step_obj, user_input):
+    """Create context prompt for the AI model based on current step and user input."""
+    return f"""
+    MEVCUT DERS DURUMU:
+    {current_step_obj.content}
+    
+    ÖĞRENCİ CEVABI:
+    {user_input}
+    
+    BEKLENEN CEVAPLAR:
+    {', '.join(current_step_obj.expected_responses) if current_step_obj.expected_responses else 'Beklenen cevap yok'}
+    
+    GÖREV:
+    1. Öğrencinin cevabını değerlendir
+    2. Eğer doğruysa, neden doğru olduğunu açıkla ve konuyu genişlet
+    3. Eğer yanlışsa, nazikçe düzelt ve doğru cevabı detaylı açıkla
+    4. Bir sonraki konuya geçiş yap
+    5. Öğrenciyi motive edici bir dille yanıt ver
+    
+    Yanıtını şu formatta ver:
+    DEĞERLENDİRME: (Doğru/Yanlış)
+    AÇIKLAMA: (Detaylı açıklama)
+    DEVAM: (Bir sonraki adımın içeriği)
+    """
+
+
+async def get_llm_response(agent_executor, context_prompt):
+    """Invoke the AI model and return its response."""
+    response = await agent_executor.ainvoke({"input": context_prompt})
+    return response.get("output", "")
+
+
+async def update_course_step(user_id, next_step):
+    """Update the course step for the user in the database."""
+    await course_collection.update_one(
+        {"user_id": user_id},
+        {"$set": {"current_step": next_step, "updated_at": datetime.utcnow()}},
+    )
+
+
+async def parse_and_update_steps(
+    response_text, current_step_obj, current_section_obj, course_state, user_id
+):
+    """Parse AI response, update steps, and return formatted output."""
+    # Parse response for explanation and continuation
+
+    print(f"response_text: {response_text}")
+    is_correct, explanation, continuation = parse_response_text(response_text)
+
+    print(f"is_correct: {is_correct}")
+    print(f"explanation: {explanation}")
+    print(f"continuation: {continuation}")
+
+    next_step = course_state["current_step"] + 1
+    await update_course_step(user_id, next_step)
+
+    return f"{explanation}\n\n{continuation}\n\n{current_section_obj.steps[next_step].content}"
+
+
+def parse_response_text(response_text):
+    """Parse the response text from AI model to extract key components."""
+    is_correct = False
+    explanation = ""
+    continuation = ""
+
+    # Satırları ayır
+    parts = response_text.split("\n")
+
+    for part in parts:
+        part = part.strip()
+        if part.startswith("DEĞERLENDİRME:"):
+            # "Doğru" kelimesini bulup is_correct olarak ayarla
+            is_correct = "Doğru" in part
+        elif part.startswith("AÇIKLAMA:"):
+            # AÇIKLAMA kısmının tamamını al
+            explanation = part.split("AÇIKLAMA:", 1)[1].strip()
+        elif part.startswith("DEVAM:"):
+            # DEVAM kısmının tamamını al
+            continuation = part.split("DEVAM:", 1)[1].strip()
+
+    return is_correct, explanation, continuation
+
+
+async def update_chat_history(user_id, user_input, assistant_response):
+    """Update chat history with user and assistant messages."""
+    await chat_collection.update_one(
+        {"user_id": user_id},
+        {
+            "$push": {
+                "messages": [
+                    {"role": "user", "content": user_input},
+                    {"role": "assistant", "content": assistant_response},
+                ]
+            },
+            "$set": {"updated_at": datetime.utcnow()},
+        },
+        upsert=True,
+    )
+
 
 @router.get("/history/{user_id}")
 async def get_chat_history(user_id: str):
@@ -331,6 +285,7 @@ async def get_chat_history(user_id: str):
     if not chat_history:
         return {"messages": []}
     return chat_history
+
 
 @router.get("/course-content/{course_id}")
 async def get_course_content(course_id: str):
@@ -344,6 +299,7 @@ async def get_course_content(course_id: str):
         logger.error(f"Error loading course content: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.get("/course-state/{user_id}")
 async def get_course_state(user_id: str):
     """
@@ -354,5 +310,5 @@ async def get_course_state(user_id: str):
         return {"current_section": 0, "current_step": 0}
     return {
         "current_section": course_state.get("current_section", 0),
-        "current_step": course_state.get("current_step", 0)
+        "current_step": course_state.get("current_step", 0),
     }
