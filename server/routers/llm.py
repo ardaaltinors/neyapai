@@ -86,6 +86,25 @@ async def llm_completions(request: LLMRequest, user_id: str = "default_user"):
         current_section_obj = course.sections[current_section]
         current_step_obj = current_section_obj.steps[current_step]
         
+        # Initialize chat with history and course context
+        messages_list = []
+        if chat_history and "messages" in chat_history:
+            messages_list = [
+                {
+                    "role": msg.get("role", ""),
+                    "content": msg.get("content", "")
+                }
+                for msg in chat_history["messages"]
+                if "role" in msg and "content" in msg
+            ]
+        
+        # Initialize agent_executor
+        agent_executor = initialize_chat(
+            conversation_id=user_id,
+            chat_history=messages_list,
+            course=course
+        )
+        
         # Process user input and generate response
         new_message = Message(role="user", content=request.input)
         llm_output = ""
@@ -95,35 +114,68 @@ async def llm_completions(request: LLMRequest, user_id: str = "default_user"):
         if current_step_obj.expected_responses:
             user_input_lower = request.input.lower()
             
+            # Special handling for first step (ready to start)
+            if current_step == 0 and current_section == 0:
+                ready_responses = ["evet", "hazırım", "başlayalım", "evet hazırım"]
+                if any(resp in user_input_lower for resp in ready_responses):
+                    next_step = 1
+                    await course_collection.update_one(
+                        {"user_id": user_id},
+                        {
+                            "$set": {
+                                "current_step": next_step,
+                                "updated_at": datetime.utcnow()
+                            }
+                        }
+                    )
+                    llm_output = current_section_obj.steps[next_step].content
+                    return LLMResponse(output=llm_output)
+                else:
+                    llm_output = "Hazır olduğunda 'evet' yazabilirsin."
+                    return LLMResponse(output=llm_output)
+            
+            # Regular flow for other steps
             # Check for skip/pass responses
             skip_responses = ["bilmiyorum", "hayır", "istemiyorum", "geç", "pass", "skip"]
             if any(skip in user_input_lower for skip in skip_responses):
                 if current_step < len(current_section_obj.steps) - 1:
                     next_step = current_step + 1
-                    llm_output = f"Sorun değil! Sana ben anlatayım:\n\n"
+                    llm_output = f"Anlamadığın noktaları açıklayayım:\n\n"
                     llm_output += current_section_obj.steps[next_step].content
             else:
-                # Check if answer matches expected responses
-                matches_expected = any(
-                    expected.lower() in user_input_lower 
-                    for expected in current_step_obj.expected_responses
-                )
+                # Send both user input and expected responses to LLM for validation
+                validation_prompt = f"""
+                Öğrenci cevabı: {user_input_lower}
+                Beklenen cevaplar: {', '.join(current_step_obj.expected_responses)}
                 
-                if matches_expected:
-                    if current_step == 0:  # First step
-                        next_step = 1
-                        llm_output = current_section_obj.steps[next_step].content
+                Öğrencinin cevabı doğru mu? Eğer doğruysa neden doğru olduğunu, yanlışsa doğru cevabı açıkla.
+                Cevabını şu formatta ver:
+                DOĞRU/YANLIŞ: <açıklama>
+                """
+                
+                try:
+                    validation_response = await agent_executor.ainvoke({"input": validation_prompt})
+                    response_text = validation_response.get("output", "").lower()
+                    is_correct = "doğru:" in response_text
+                    
+                    if is_correct:
+                        if current_step < len(current_section_obj.steps) - 1:
+                            next_step = current_step + 1
+                            explanation = response_text.split("doğru:")[1].strip()
+                            llm_output = f"{explanation}\n\nŞimdi devam edelim:\n\n{current_section_obj.steps[next_step].content}"
                     else:
                         if current_step < len(current_section_obj.steps) - 1:
                             next_step = current_step + 1
-                            llm_output = f"Harika! Doğru cevap.\n\n{current_section_obj.steps[next_step].content}"
-                else:
+                            explanation = response_text.split("yanliş:")[1].strip() if "yanliş:" in response_text else response_text
+                            llm_output = f"{explanation}\n\nDevam edelim:\n\n{current_section_obj.steps[next_step].content}"
+                        
+                except Exception as e:
+                    logger.error(f"LLM validation error: {str(e)}")
+                    # If validation fails, continue with next step
                     if current_step < len(current_section_obj.steps) - 1:
                         next_step = current_step + 1
-                        llm_output = f"Tam olarak doğru değil. Doğru cevap şöyle:\n\n"
-                        llm_output += f"Güneş'in çekirdeğinde nükleer füzyon gerçekleşir. Bu süreçte hidrojen atomları birleşerek helyuma dönüşür ve muazzam miktarda enerji açığa çıkar.\n\n"
-                        llm_output += f"Şimdi devam edelim:\n\n{current_section_obj.steps[next_step].content}"
-        
+                        llm_output = f"Cevabını tam olarak değerlendiremedim. Devam edelim:\n\n{current_section_obj.steps[next_step].content}"
+
         # Update step if needed
         if next_step is not None:
             await course_collection.update_one(

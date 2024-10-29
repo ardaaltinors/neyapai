@@ -27,21 +27,18 @@ sections:
     order: 1
     steps:
       - step: 1
-        content: "Merhaba! Güneş Sistemi dersimize hoş geldin. Bugün ilk olarak sistemimizin kalbi olan Güneş'i öğreneceğiz. Başlamaya hazır mısın?"
-        expected_responses: ["evet", "hazırım", "başlayalım"]
-        next_action: "CONTINUE"
-      
-      - step: 2
-        content: "Harika! Öncelikle Güneş'in temel özelliklerinden bahsedelim. Güneş, sistemimizin merkezinde yer alan devasa bir yıldızdır ve sistemin kütlesinin %99.86'sını oluşturur. Güneş'in yüzey sıcaklığı 5,500°C'dir ve çekirdeğinde sıcaklık 15 milyon °C'ye ulaşır. Çapı 1.4 milyon kilometre olup, bu Dünya'nın 109 katıdır. 
+        content: "Güneş Sistemi dersimize hoş geldin! Bugün ilk olarak sistemimizin kalbi olan Güneş'i öğreneceğiz. 
 
-        Bu bilgiler ışığında, sence Güneş neden bu kadar sıcaktır?"
+        Güneş, sistemimizin merkezinde yer alan devasa bir yıldızdır ve sistemin kütlesinin %99.86'sını oluşturur. Yüzey sıcaklığı 5,500°C olan Güneş'in çekirdeğinde sıcaklık 15 milyon °C'ye ulaşır. Çapı 1.4 milyon kilometre olup, bu Dünya'nın 109 katıdır.
+
+        Bu muazzam enerji kaynağının sırrı nedir? Sence Güneş bu enerjiyi nasıl üretiyor?"
         expected_responses: ["füzyon", "nükleer", "hidrojen", "helyum", "çekirdek"]
         next_action: "CONTINUE"
       
-      - step: 3
-        content: "Çok doğru! Güneş'in çekirdeğinde nükleer füzyon gerçekleşir. Bu süreçte hidrojen atomları birleşerek helyuma dönüşür ve muazzam miktarda enerji açığa çıkar. 
+      - step: 2
+        content: "Güneş'in çekirdeğinde nükleer füzyon gerçekleşir. Bu süreçte hidrojen atomları birleşerek helyuma dönüşür ve muazzam miktarda enerji açığa çıkar. Bu enerji, farklı katmanlardan geçerek bize ulaşır.
 
-        Şimdi Güneş'in yapısını inceleyelim. Güneş'in 6 ana katmanı vardır:
+        Güneş'in 6 ana katmanı vardır:
         1. Çekirdek: Nükleer füzyonun gerçekleştiği merkezi bölge
         2. Radyatif Bölge: Enerjinin ışınım yoluyla taşındığı katman
         3. Konvektif Bölge: Enerjinin konveksiyon yoluyla taşındığı dış katman
@@ -49,19 +46,30 @@ sections:
         5. Kromosfer: Güneş atmosferinin alt katmanı
         6. Korona: Güneş'in dış atmosferi
 
-        Bu katmanlardan hangisi hakkında daha detaylı bilgi almak istersin?"
-        expected_responses: ["çekirdek", "radyatif", "konvektif", "fotosfer", "kromosfer", "korona"]
+        Bu katmanlardan hangisinde nükleer füzyon gerçekleşir?"
+        expected_responses: ["çekirdek", "merkez"]
+        next_action: "CONTINUE"
+      
+      - step: 3
+        content: "Evet, nükleer füzyon çekirdekte gerçekleşir. Peki, bu enerji yüzeye nasıl ulaşır? 
+
+        Çekirdekte üretilen enerji, önce radyatif bölgede ışınım yoluyla, sonra konvektif bölgede konveksiyon yoluyla taşınır. En sonunda fotosferden uzaya yayılır.
+
+        Sence bu enerji Dünya'ya ulaşmak için ne kadar süre yolculuk yapar?"
+        expected_responses: ["8 dakika", "8", "sekiz"]
         next_action: "CONTINUE"
       
       - step: 4
-        content: "Güzel! Şimdi öğrendiklerimizi özetleyelim:
-        - Güneş, sistemimizin merkezidir ve tüm kütlenin %99.86'sını oluşturur
-        - Yüzey sıcaklığı 5,500°C, çekirdek sıcaklığı 15 milyon °C'dir
-        - Enerji, çekirdekte gerçekleşen nükleer füzyon ile üretilir
-        - 6 ana katmandan oluşur ve her katmanın özel görevi vardır
+        content: "Güneş'ten çıkan ışık ve enerji, Dünya'ya 8 dakikada ulaşır. Bu süre zarfında ışık, 150 milyon kilometrelik bir yol kat eder.
 
-        Bu bilgiler ışığında, sence Güneş'in yaşam için en önemli özelliği nedir?"
-        expected_responses: ["enerji üretmesi", "ısı", "ışık", "yaşam kaynağı"]
+        Şimdi öğrendiklerimizi özetleyelim:
+        - Güneş, sistemimizin merkezidir
+        - Enerji çekirdekte nükleer füzyon ile üretilir
+        - 6 ana katmandan oluşur
+        - Enerjisi Dünya'ya 8 dakikada ulaşır
+
+        Güneş olmasaydı Dünya'da neler olurdu?"
+        expected_responses: ["yaşam olmazdı", "soğuk", "karanlık", "enerji"]
         next_action: "NEXT"
 
   - title: "2. İç Gezegenler: Karasal Dünyalar"
