@@ -143,38 +143,72 @@ async def llm_completions(request: LLMRequest, user_id: str = "default_user"):
                     llm_output = f"Anlamadığın noktaları açıklayayım:\n\n"
                     llm_output += current_section_obj.steps[next_step].content
             else:
-                # Send both user input and expected responses to LLM for validation
-                validation_prompt = f"""
-                Öğrenci cevabı: {user_input_lower}
-                Beklenen cevaplar: {', '.join(current_step_obj.expected_responses)}
+                # Send both user input, expected responses and course content to LLM for processing
+                context_prompt = f"""
+                MEVCUT DERS DURUMU:
+                {current_step_obj.content}
                 
-                Öğrencinin cevabı doğru mu? Eğer doğruysa neden doğru olduğunu, yanlışsa doğru cevabı açıkla.
-                Cevabını şu formatta ver:
-                DOĞRU/YANLIŞ: <açıklama>
+                ÖĞRENCİ CEVABI:
+                {user_input_lower}
+                
+                BEKLENEN CEVAPLAR:
+                {', '.join(current_step_obj.expected_responses) if current_step_obj.expected_responses else 'Beklenen cevap yok'}
+                
+                GÖREV:
+                1. Öğrencinin cevabını değerlendir
+                2. Eğer doğruysa, neden doğru olduğunu açıkla ve konuyu genişlet
+                3. Eğer yanlışsa, nazikçe düzelt ve doğru cevabı detaylı açıkla
+                4. Bir sonraki konuya geçiş yap
+                5. Öğrenciyi motive edici bir dille yanıt ver
+                
+                Yanıtını şu formatta ver:
+                DEĞERLENDİRME: (Doğru/Yanlış)
+                AÇIKLAMA: (Detaylı açıklama)
+                DEVAM: (Bir sonraki adımın içeriği)
                 """
                 
                 try:
-                    validation_response = await agent_executor.ainvoke({"input": validation_prompt})
-                    response_text = validation_response.get("output", "").lower()
-                    is_correct = "doğru:" in response_text
+                    # Get AI response
+                    response = await agent_executor.ainvoke({"input": context_prompt})
+                    response_text = response.get("output", "")
                     
-                    if is_correct:
-                        if current_step < len(current_section_obj.steps) - 1:
-                            next_step = current_step + 1
-                            explanation = response_text.split("doğru:")[1].strip()
-                            llm_output = f"{explanation}\n\nŞimdi devam edelim:\n\n{current_section_obj.steps[next_step].content}"
-                    else:
-                        if current_step < len(current_section_obj.steps) - 1:
-                            next_step = current_step + 1
-                            explanation = response_text.split("yanliş:")[1].strip() if "yanliş:" in response_text else response_text
-                            llm_output = f"{explanation}\n\nDevam edelim:\n\n{current_section_obj.steps[next_step].content}"
-                        
-                except Exception as e:
-                    logger.error(f"LLM validation error: {str(e)}")
-                    # If validation fails, continue with next step
+                    # Parse AI response
+                    parts = response_text.lower().split("\n")
+                    is_correct = "doğru" in parts[0] if parts else False
+                    
+                    # Extract explanation and continuation
+                    explanation = ""
+                    continuation = ""
+                    for part in parts:
+                        if "açıklama:" in part:
+                            explanation = part.split("açıklama:")[1].strip()
+                        elif "devam:" in part:
+                            continuation = part.split("devam:")[1].strip()
+                    
+                    # Move to next step
                     if current_step < len(current_section_obj.steps) - 1:
                         next_step = current_step + 1
-                        llm_output = f"Cevabını tam olarak değerlendiremedim. Devam edelim:\n\n{current_section_obj.steps[next_step].content}"
+                        await course_collection.update_one(
+                            {"user_id": user_id},
+                            {
+                                "$set": {
+                                    "current_step": next_step,
+                                    "updated_at": datetime.utcnow()
+                                }
+                            }
+                        )
+                        
+                        # Combine explanation with next content
+                        if is_correct:
+                            llm_output = f"{explanation}\n\n{continuation}\n\n{current_section_obj.steps[next_step].content}"
+                        else:
+                            llm_output = f"{explanation}\n\nAma endişelenme! {continuation}\n\n{current_section_obj.steps[next_step].content}"
+                    
+                except Exception as e:
+                    logger.error(f"LLM processing error: {str(e)}")
+                    if current_step < len(current_section_obj.steps) - 1:
+                        next_step = current_step + 1
+                        llm_output = f"Cevabını değerlendirirken bir sorun oluştu. Devam edelim:\n\n{current_section_obj.steps[next_step].content}"
 
         # Update step if needed
         if next_step is not None:
@@ -190,24 +224,79 @@ async def llm_completions(request: LLMRequest, user_id: str = "default_user"):
         
         # Handle section transitions
         if current_step == len(current_section_obj.steps) - 1:
-            if current_section < len(course.sections) - 1:
-                next_section = current_section + 1
-                await course_collection.update_one(
-                    {"user_id": user_id},
-                    {
-                        "$set": {
-                            "current_section": next_section,
-                            "current_step": 0,
-                            "updated_at": datetime.utcnow()
-                        }
-                    }
-                )
+            # Check if this is the last question of the section
+            if "neler olurdu" in current_step_obj.content.lower() or "ne olurdu" in current_step_obj.content.lower():
+                # Process the answer first
+                context_prompt = f"""
+                MEVCUT DERS DURUMU:
+                {current_step_obj.content}
                 
-                section_intro = f"\n\nHarika! Bu bölümü tamamladın. Şimdi {course.sections[next_section].title} bölümüne geçiyoruz.\n\n"
-                section_intro += course.sections[next_section].steps[0].content
-                llm_output = section_intro
+                ÖĞRENCİ CEVABI:
+                {user_input_lower}
+                
+                BEKLENEN CEVAPLAR:
+                {', '.join(current_step_obj.expected_responses) if current_step_obj.expected_responses else 'Beklenen cevap yok'}
+                
+                GÖREV:
+                1. Öğrencinin cevabını değerlendir
+                2. Bölüm sonu değerlendirmesi yap
+                3. Bir sonraki bölüme geçiş için hazırlık yap
+                
+                Yanıtını şu formatta ver:
+                DEĞERLENDİRME: (Öğrencinin cevabının değerlendirmesi)
+                ÖZET: (Bölümün kısa özeti)
+                GEÇİŞ: (Sonraki bölüme geçiş cümlesi)
+                """
+                
+                try:
+                    response = await agent_executor.ainvoke({"input": context_prompt})
+                    response_text = response.get("output", "")
+                    
+                    # Move to next section after providing feedback
+                    if current_section < len(course.sections) - 1:
+                        next_section = current_section + 1
+                        await course_collection.update_one(
+                            {"user_id": user_id},
+                            {
+                                "$set": {
+                                    "current_section": next_section,
+                                    "current_step": 0,
+                                    "updated_at": datetime.utcnow()
+                                }
+                            }
+                        )
+                        
+                        # Combine the evaluation with next section intro
+                        section_intro = f"\n\n{response_text}\n\nŞimdi {course.sections[next_section].title} bölümüne geçiyoruz.\n\n"
+                        section_intro += course.sections[next_section].steps[0].content
+                        llm_output = section_intro
+                    else:
+                        llm_output = f"\n\n{response_text}\n\nTebrikler! Tüm kursu başarıyla tamamladın! 🎉"
+                        
+                except Exception as e:
+                    logger.error(f"LLM processing error in section transition: {str(e)}")
+                    llm_output = "Cevabını değerlendirirken bir sorun oluştu."
+                    
             else:
-                llm_output = "\n\nTebrikler! Tüm kursu başarıyla tamamladın! 🎉"
+                # Regular section transition
+                if current_section < len(course.sections) - 1:
+                    next_section = current_section + 1
+                    await course_collection.update_one(
+                        {"user_id": user_id},
+                        {
+                            "$set": {
+                                "current_section": next_section,
+                                "current_step": 0,
+                                "updated_at": datetime.utcnow()
+                            }
+                        }
+                    )
+                    
+                    section_intro = f"\n\nBu bölümü tamamladın. Şimdi {course.sections[next_section].title} bölümüne geçiyoruz.\n\n"
+                    section_intro += course.sections[next_section].steps[0].content
+                    llm_output = section_intro
+                else:
+                    llm_output = "\n\nTebrikler! Tüm kursu başarıyla tamamladın! 🎉"
         
         # Update chat history
         assistant_message = Message(role="assistant", content=llm_output)

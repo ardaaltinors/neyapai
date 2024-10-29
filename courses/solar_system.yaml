@@ -51,7 +51,7 @@ sections:
         next_action: "CONTINUE"
       
       - step: 3
-        content: "Evet, nükleer füzyon çekirdekte gerçekleşir. Peki, bu enerji yüzeye nasıl ulaşır? 
+        content: "Nükleer füzyon çekirdekte gerçekleşir. Peki, bu enerji yüzeye nasıl ulaşır? 
 
         Çekirdekte üretilen enerji, önce radyatif bölgede ışınım yoluyla, sonra konvektif bölgede konveksiyon yoluyla taşınır. En sonunda fotosferden uzaya yayılır.
 
@@ -62,7 +62,7 @@ sections:
       - step: 4
         content: "Güneş'ten çıkan ışık ve enerji, Dünya'ya 8 dakikada ulaşır. Bu süre zarfında ışık, 150 milyon kilometrelik bir yol kat eder.
 
-        Şimdi öğrendiklerimizi özetleyelim:
+        Öğrendiklerimizi özetleyelim:
         - Güneş, sistemimizin merkezidir
         - Enerji çekirdekte nükleer füzyon ile üretilir
         - 6 ana katmandan oluşur
@@ -108,23 +108,23 @@ sections:
     order: 2
     steps:
       - step: 1
-        content: "Şimdi iç gezegenleri öğrenmeye başlayalım. İç gezegenler, Güneş'e en yakın dört gezegeni kapsar. Bunlar sırasıyla hangi gezegenlerdir, biliyor musun?"
+        content: "İç gezegenleri öğrenmeye başlayalım. İç gezegenler, Güneş'e en yakın dört gezegeni kapsar. Bunlar sırasıyla hangi gezegenlerdir?"
         expected_responses: ["merkür", "venüs", "dünya", "mars"]
         next_action: "CONTINUE"
       - step: 2
-        content: "Harika! Şimdi Merkür'ü inceleyelim. Merkür, Güneş'e en yakın ve en küçük gezegendir. Gündüz ve gece sıcaklıkları arasında çok büyük fark vardır. Sence bunun nedeni ne olabilir?"
+        content: "Merkür'ü inceleyelim. Merkür, Güneş'e en yakın ve en küçük gezegendir. Gündüz ve gece sıcaklıkları arasında çok büyük fark vardır. Bunun nedeni ne olabilir?"
         expected_responses: ["atmosfer", "koruma", "yakınlık", "güneş"]
         next_action: "CONTINUE"
       - step: 3
-        content: "Venüs'e geçelim. Venüs'ün en ilginç özelliği nedir biliyor musun? İpucu: Sıcaklıkla ilgili bir rekor kırıyor."
+        content: "Venüs'ün en ilginç özelliği nedir? İpucu: Sıcaklıkla ilgili bir rekor kırıyor."
         expected_responses: ["en sıcak", "462", "sera etkisi"]
         next_action: "CONTINUE"
       - step: 4
-        content: "Dünya'mızı konuşalım. Dünya'yı diğer gezegenlerden ayıran en önemli özellik nedir?"
+        content: "Dünya'yı diğer gezegenlerden ayıran en önemli özellik nedir?"
         expected_responses: ["yaşam", "su", "atmosfer", "oksijen"]
         next_action: "CONTINUE"
       - step: 5
-        content: "Son olarak Mars'a bakalım. Mars'a neden 'Kızıl Gezegen' deniyor, biliyor musun?"
+        content: "Mars'a neden 'Kızıl Gezegen' deniyor?"
         expected_responses: ["demir", "kırmızı", "oksit", "toprak"]
         next_action: "NEXT"
 
@@ -161,22 +161,22 @@ sections:
     order: 3
     steps:
       - step: 1
-        content: "Dış gezegenlere hoş geldin! Bu gezegenler neden 'gaz devi' olarak adlandırılıyor, biliyor musun?"
+        content: "Dış gezegenler neden 'gaz devi' olarak adlandırılıyor?"
         expected_responses: ["gaz", "büyük", "hidrojen", "helyum"]
         next_action: "CONTINUE"
       - step: 2
-        content: "Jüpiter, güneş sisteminin en büyük gezegenidir. Üzerindeki Büyük Kırmızı Leke aslında nedir, tahmin edebilir misin?"
+        content: "Jüpiter'in üzerindeki Büyük Kırmızı Leke nedir?"
         expected_responses: ["fırtına", "kasırga", "girdap"]
         next_action: "CONTINUE"
       - step: 3
-        content: "Satürn'ün en dikkat çekici özelliği nedir?"
+        content: "Satürn'ü diğer gezegenlerden ayıran özellik nedir?"
         expected_responses: ["halka", "halkalar", "ring"]
         next_action: "CONTINUE"
       - step: 4
-        content: "Uranüs'ün diğer gezegenlerden farklı olarak nasıl döndüğünü biliyor musun?"
+        content: "Uranüs'ün dönüş ekseni diğer gezegenlerden nasıl farklıdır?"
         expected_responses: ["yan", "yatık", "eğik"]
         next_action: "CONTINUE"
       - step: 5
-        content: "Son olarak Neptün'e geldik. Neptün'ün en etkileyici özelliği nedir?"
+        content: "Neptün'ün en karakteristik özelliği nedir?"
         expected_responses: ["rüzgar", "fırtına", "hız"]
         next_action: "NEXT"
