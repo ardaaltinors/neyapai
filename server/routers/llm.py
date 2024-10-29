@@ -222,12 +222,12 @@ async def parse_and_update_steps(
     """Parse AI response, update steps, and return formatted output."""
     # Parse response for explanation and continuation
 
-    print(f"response_text: {response_text}")
+    # print(f"response_text: {response_text}")
     is_correct, explanation, continuation = parse_response_text(response_text)
 
-    print(f"is_correct: {is_correct}")
-    print(f"explanation: {explanation}")
-    print(f"continuation: {continuation}")
+    # print(f"is_correct: {is_correct}")
+    # print(f"explanation: {explanation}")
+    # print(f"continuation: {continuation}")
 
     next_step = course_state["current_step"] + 1
     await update_course_step(user_id, next_step)
