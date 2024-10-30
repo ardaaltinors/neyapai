@@ -1,5 +1,3 @@
-# File: /server/services/langchain/chat.py
-
 from langchain.agents import AgentExecutor, create_tool_calling_agent
 from langchain.prompts import ChatPromptTemplate, HumanMessagePromptTemplate, MessagesPlaceholder
 from langchain.schema import SystemMessage
@@ -7,25 +5,17 @@ from server.services.langchain.llms.gemini import build_llm
 from server.services.langchain.memories.memory import build_memory
 from server.models.course import Course
 
+from server.services.langchain.tools.next_step_tool import next_step_tool_wrapper
+from server.services.langchain.tools.magic_function import magic_function
+
 def build_prompt(course: Course = None):
     system_content = """
-    Sen bir öğretmen asistanısın. Öğrencilere ders içeriğini adım adım öğretmekle görevlisin.
+    Sen bir öğretmensin. Öğrencilere ders içeriğini adım adım öğretmekle görevlisin. Sana kurs içeriğinden bir bölüm verildi. Bu bölümü hiçbir değişiklik yapmadan öğrenciye anlatman gerekiyor.
     
     Görevlerin:
-    1. Her bölümü sırayla ve detaylı şekilde anlatmak
-    2. Öğrencinin anlayıp anlamadığını kontrol etmek
-    3. Öğrenci hazır olduğunda bir sonraki bölüme geçmek
-    4. Her bölümün sonunda öğrenme hedeflerine ulaşılıp ulaşılmadığını kontrol etmek
-    
-    Kurallar:
-    1. Her seferinde sadece mevcut bölümün içeriğine odaklan
-    2. Öğrenci anlamadan yeni bölüme geçme
-    3. Her bölümün sonunda özet yap ve öğrencinin hazır olup olmadığını kontrol et
-    4. Öğrenci hazırsa, bir sonraki bölüme geçmek için onay iste
-    5. Her yanıtın sonuna şu formatla ilerleme durumunu ekle:
-       [PROGRESS: CONTINUE] - Aynı bölüme devam et
-       [PROGRESS: NEXT] - Bir sonraki bölüme geç
-       [PROGRESS: REVIEW] - Bölümü tekrar et
+    1. Mevcut bölümü sırayla ve detaylı şekilde anlatmak.
+    2. Öğrenciye bölüm ile ilgili bir soru sor.
+    3. Sorunun doğruluğunu kontrol et. Eğer cevap doğruysa next_step_tool fonksiyonunu çağırarak öğrenciyi bir sonraki adıma geçir. Eğer cevap yanlışsa doğru cevabı açıkla ve benzer bir soru sor.
     """
     
     if course:
@@ -36,9 +26,6 @@ def build_prompt(course: Course = None):
         Toplam Bölüm: {len(course.sections)}
         Mevcut Bölüm: {current_section.title}
         Bölüm İçeriği: {current_section.content}
-        
-        Öğrenme Hedefleri:
-        {current_section.content.split('Öğrenme Hedefleri:')[1].strip() if 'Öğrenme Hedefleri:' in current_section.content else 'Belirtilmemiş'}
         """
     
     return ChatPromptTemplate(
@@ -55,7 +42,7 @@ def initialize_chat(conversation_id: str, chat_history: list, course: Course = N
     memory = build_memory(username=conversation_id, history=chat_history)
     prompt = build_prompt(course)
     
-    tools = []
+    tools = [next_step_tool_wrapper(conversation_id)]
     
     agent = create_tool_calling_agent(
         llm=llm,
