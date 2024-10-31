@@ -8,11 +8,32 @@ from server.database import db
 from datetime import datetime
 import logging
 
+from server.utils.async_utils import async_retry
+
 router = APIRouter(prefix="/llm", tags=["LLM"])
 
 logger = logging.getLogger(__name__)
 chat_collection = db.get_collection("chat_history")
 course_collection = db.get_collection("courses")
+
+@async_retry(max_retries=3, delay=2)  # Adjust retries and delay as needed
+async def invoke_llm_with_retry(agent_executor, user_input: str) -> dict:
+    """
+    Invokes the LLM with retry mechanism.
+    
+    Args:
+        agent_executor: The initialized agent executor for the LLM.
+        user_input (str): The input string from the user.
+
+    Returns:
+        dict: The response from the LLM.
+    """
+    try:
+        response = await agent_executor.ainvoke({"input": user_input})
+        return response
+    except Exception as e:
+        logger.error(f"LLM invocation failed: {str(e)}")
+        raise  # Re-raise exception to trigger retry
 
 
 @router.post("/start-course/{course_id}")
@@ -68,24 +89,27 @@ async def llm_completions(request: LLMRequest, user_id: str = "default_user"):
         if not course_state:
             raise HTTPException(status_code=400, detail="No active course found")
 
-        course, current_section_obj, current_step_obj = load_course_details(
-            course_state
-        )
+        course, current_section_obj, current_step_obj = load_course_details(course_state)
         messages_list = prepare_chat_history(chat_history)
 
         agent_executor = initialize_chat(
             conversation_id=user_id, chat_history=messages_list, course=course
         )
         
-        agent_response = await agent_executor.ainvoke({"input": user_input})
+        agent_response = await invoke_llm_with_retry(agent_executor, user_input)
 
-        await update_chat_history(user_id, request.input, agent_response["output"])
+        await update_chat_history(user_id, user_input, agent_response["output"])
         
         return LLMResponse(output=agent_response["output"])
 
+    except ValueError as ve:
+        logger.error(f"LLM invocation failed after retries: {str(ve)}")
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable. Please try again later.")
+    except HTTPException as he:
+        raise he  # Re-raise HTTPExceptions to be handled by FastAPI
     except Exception as e:
-        logger.error(f"Error in llm_completions endpoint: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Unexpected error in llm_completions endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 async def fetch_user_data(user_id):
