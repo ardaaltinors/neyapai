@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from server.models.llm import LLMRequest, LLMResponse
 from server.models.chat import Message, ChatHistory
-from server.models.course import Course
+from server.models.course import Course, Step
 from server.services.langchain.chat import initialize_chat
 from server.services.course_loader import load_course_content
 from server.database import db
@@ -172,3 +172,71 @@ async def get_course_state(user_id: str):
         "current_section": course_state.get("current_section", 0),
         "current_step": course_state.get("current_step", 0),
     }
+    
+@router.post("/next-step", response_model=Step)
+async def next_step(user_id: str = "default_user"):
+    """
+    Advance the user to the next step in the current course.
+    """
+    try:
+        # Fetch user's current course state
+        course_state = await course_collection.find_one({"user_id": user_id})
+        if not course_state:
+            raise HTTPException(status_code=400, detail="No active course found for user.")
+
+        # Load course details
+        course = load_course_content(course_state["course_id"])
+        current_section_idx = course_state.get("current_section", 0)
+        current_step_idx = course_state.get("current_step", 0)
+
+        # Get current section and step
+        if current_section_idx >= len(course.sections):
+            raise HTTPException(status_code=400, detail="All sections completed.")
+
+        current_section = course.sections[current_section_idx]
+        if current_step_idx >= len(current_section.steps):
+            # Move to next section
+            current_section_idx += 1
+            if current_section_idx >= len(course.sections):
+                # Course completed
+                return {"message": "Tebrikler! Tüm dersi tamamladınız."}
+            current_step_idx = 0
+            current_section = course.sections[current_section_idx]
+
+        # Get the next step
+        next_step = current_section.steps[current_step_idx]
+
+        # Update course state in the database
+        await course_collection.update_one(
+            {"user_id": user_id},
+            {
+                "$set": {
+                    "current_section": current_section_idx,
+                    "current_step": current_step_idx + 1,
+                    "updated_at": datetime.utcnow(),
+                }
+            },
+            upsert=True,
+        )
+
+        # Optionally, you can send the next step's content as a message to the user
+        assistant_message = Message(
+            role="assistant",
+            content=next_step.content,
+        )
+        await chat_collection.update_one(
+            {"user_id": user_id},
+            {
+                "$push": {"messages": assistant_message.dict()},
+                "$set": {"updated_at": datetime.utcnow()},
+            },
+            upsert=True,
+        )
+
+        return next_step
+
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        logger.error(f"Error advancing to next step: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
