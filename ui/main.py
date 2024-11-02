@@ -14,23 +14,27 @@ if "messages" not in st.session_state:
 
 # Sidebar with About and Example Questions
 with st.sidebar:
-    st.header("About")
+    st.header("Hakkında")
     st.markdown(
         """
-        This chatbot interacts with a local Language Model API to generate responses based on your input.
-        Simply enter your message, and the assistant will reply accordingly.
+        Bu chatbot, gelecekteki bilimsel keşifler hakkında yaratıcı ve düşündürücü hikayeler üretir.
+        Her hikaye bilimsel temelli olup, toplumsal etkileri detaylı şekilde analiz eder.
         """
     )
 
-    st.header("Örnek Sorular")
-    st.markdown("- Bugün hangi konuları çalışmalıyım?")
-    st.markdown("- Yarın sınav var, hangi konulara çalışmalıyım?")
-    st.markdown("- Ders çalışırken nasıl daha verimli olabilirim?")
+    st.header("Örnek Promptlar")
+    st.markdown("""
+    - Beyin-bilgisayar arayüzlerinin yaygınlaşmasının toplum üzerindeki etkilerini anlatan bir hikaye yazar mısın?
+    - Ölümsüzlük geninin keşfedilmesinin insanlık üzerindeki etkilerini anlatan bir hikaye yazar mısın?
+    - Temiz ve sınırsız enerji kaynağının bulunmasının dünya üzerindeki etkilerini anlatan bir hikaye yazar mısın?
+    - Uzayda koloni kurmanın mümkün hale gelmesinin insanlık üzerindeki etkilerini anlatan bir hikaye yazar mısın?
+    """)
 
 # Main chatbot section
-st.title("LLM Assistant Chatbot")
+st.title("Bilimsel Keşifler ve Gelecek Hikayeleri")
 st.info(
-    """Ask me anything, and I'll do my best to assist you!"""
+    """Gelecekteki bir bilimsel keşif hakkında kısa hikaye yazdırmak için prompt giriniz. 
+    Hikayeler keşfin detaylarını ve toplum üzerindeki etkilerini içerecektir."""
 )
 
 # Display chat messages
@@ -46,7 +50,7 @@ for message in st.session_state.messages:
                     st.write(message["intermediate_steps"])
 
 # User input
-if prompt := st.chat_input("What do you want to know?"):
+if prompt := st.chat_input("Hangi bilimsel keşfin hikayesini yazmamı istersiniz?"):
     # Display user message
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
