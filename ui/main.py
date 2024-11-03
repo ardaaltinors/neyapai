@@ -170,13 +170,6 @@ with col2:
                             else:
                                 st.sidebar.text(f"⏳ {section['title']}")
                         
-                        # Display current content
-                        if current_section_data:
-                            with st.sidebar.expander("Current Section Details"):
-                                if current_step < len(current_section_data["steps"]):
-                                    current_step_content = current_section_data["steps"][current_step]["content"]
-                                    st.markdown(current_step_content)
-                        
                         # Display remaining sections
                         remaining_sections = total_sections - current_section
                         if remaining_sections > 0:
