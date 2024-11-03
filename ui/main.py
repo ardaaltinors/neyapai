@@ -1,10 +1,21 @@
 import os
+from pathlib import Path
 import requests
 import streamlit as st
 
 API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
 COMPLETIONS_URL = f"{API_BASE_URL}/llm/completions"
 START_COURSE_URL = f"{API_BASE_URL}/llm/start-course"
+
+# Ana dizini belirle
+ROOT_DIR = Path(__file__).parent.parent
+
+# Statik dosya yolunu ayarla
+def get_image_path(image_path: str) -> str:
+    """Convert image path to absolute path"""
+    if image_path.startswith('/'):
+        image_path = image_path[1:]
+    return str(ROOT_DIR / image_path)
 
 def start_course(course_id: str, user_id: str = "default_user"):
     try:
@@ -76,7 +87,39 @@ with col1:
         # Display chat messages
         for message in st.session_state.messages:
             with st.chat_message(message["role"]):
-                st.markdown(message["content"])
+                content = message["content"]
+                
+                # Markdown içeriğini parçalara ayır (resim ve metin)
+                if "![" in content and "](/images/" in content:
+                    # Metni parçalara ayır
+                    parts = content.split("![")
+                    
+                    # İlk metin parçasını göster
+                    st.markdown(parts[0])
+                    
+                    # Resim ve sonraki metin parçalarını işle
+                    for part in parts[1:]:
+                        if "](" in part:
+                            img_title, rest = part.split("](")
+                            img_path, text = rest.split(")", 1)
+                            
+                            # Resim yolunu düzelt
+                            if img_path.startswith('/images/'):
+                                img_path = img_path.replace('/images/', '')
+                                full_path = str(ROOT_DIR / "images" / img_path)
+                                
+                                # Resmi göster
+                                try:
+                                    st.image(full_path, caption=img_title)
+                                except Exception as e:
+                                    st.error(f"Resim yüklenirken hata oluştu: {str(e)}")
+                            
+                            # Kalan metni göster
+                            if text:
+                                st.markdown(text)
+                else:
+                    # Resim yoksa normal markdown olarak göster
+                    st.markdown(content)
         
         # Kursun tamamlanıp tamamlanmadığını kontrol et
         is_course_completed = (

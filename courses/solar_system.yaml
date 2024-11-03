@@ -8,6 +8,8 @@ course_sections:
 
         Güneş, sistemimizin merkezinde yer alan devasa bir yıldızdır ve sistemin kütlesinin %99.86'sını oluşturur. Yüzey sıcaklığı 5,500°C olan Güneş'in çekirdeğinde sıcaklık 15 milyon °C'ye ulaşır. Çapı 1.4 milyon kilometre olup, bu Dünya'nın 109 katıdır.
 
+        ![Güneş Sistemi](/images/gunes_sistemi.png)
+
         Bu muazzam enerji kaynağının sırrı nedir? Sence Güneş bu enerjiyi nasıl üretiyor?"
         expected_responses: ["1", "füzyon", "nükleer", "hidrojen", "helyum", "çekirdek"]
         next_action: "CONTINUE"
