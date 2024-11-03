@@ -78,32 +78,42 @@ with col1:
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
         
-        # Chat input
-        if prompt := st.chat_input("Mesajınızı buraya yazın..."):
-            # Add user message to chat
-            st.session_state.messages.append({
-                "role": "user",
-                "content": prompt
-            })
-            
-            # Get AI response
-            try:
-                response = requests.post(
-                    COMPLETIONS_URL,
-                    json={"input": prompt},
-                    params={"user_id": "default_user"}
-                )
-                response.raise_for_status()
+        # Kursun tamamlanıp tamamlanmadığını kontrol et
+        is_course_completed = (
+            len(st.session_state.messages) > 0 and 
+            "Tebrikler! 🎉 Kursu başarıyla tamamladın" in st.session_state.messages[-1].get("content", "")
+        )
+        
+        # Chat input - sadece kurs tamamlanmamışsa göster
+        if not is_course_completed:
+            if prompt := st.chat_input("Mesajınızı buraya yazın..."):
+                # Add user message to chat
+                st.session_state.messages.append({
+                    "role": "user",
+                    "content": prompt
+                })
                 
-                ai_message = {
-                    "role": "assistant",
-                    "content": response.json()["output"]
-                }
-                st.session_state.messages.append(ai_message)
-                st.rerun()
-                
-            except Exception as e:
-                st.error(f"Hata: {str(e)}")
+                # Get AI response
+                try:
+                    response = requests.post(
+                        COMPLETIONS_URL,
+                        json={"input": prompt},
+                        params={"user_id": "default_user"}
+                    )
+                    response.raise_for_status()
+                    
+                    ai_message = {
+                        "role": "assistant",
+                        "content": response.json()["output"]
+                    }
+                    st.session_state.messages.append(ai_message)
+                    st.rerun()
+                    
+                except Exception as e:
+                    st.error(f"Hata: {str(e)}")
+        else:
+            # Kurs tamamlandığında gösterilecek mesaj
+            st.info("Kurs tamamlandı! Yeni bir kursa başlamak için sidebar'daki 'Yeni Kursa Başla' butonunu kullanabilirsiniz.")
 
 # Sidebar with course progress
 with col2:
