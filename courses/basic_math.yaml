@@ -9,7 +9,7 @@ course_sections:
         Matematiğin temeli sayılardır. Günlük hayatta sürekli sayılarla karşılaşırız.
         
         Temel işlemler nelerdir? Haydi birlikte sayalım."
-        expected_responses: ["1", "toplama", "çıkarma", "çarpma", "bölme"]
+        expected_responses: ["toplama", "çıkarma", "çarpma", "bölme"]
         next_action: "CONTINUE"
       
       - step: 2

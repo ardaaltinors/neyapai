@@ -11,7 +11,7 @@ course_sections:
         ![Güneş Sistemi](/images/gunes_sistemi.png)
 
         Bu muazzam enerji kaynağının sırrı nedir? Sence Güneş bu enerjiyi nasıl üretiyor?"
-        expected_responses: ["1", "füzyon", "nükleer", "hidrojen", "helyum", "çekirdek"]
+        expected_responses: ["füzyon", "nükleer", "hidrojen", "helyum", "çekirdek"]
         next_action: "CONTINUE"
       
       - step: 2
@@ -26,7 +26,7 @@ course_sections:
         6. Korona: Güneş'in dış atmosferi
 
         Bu katmanlardan hangisinde nükleer füzyon gerçekleşir?"
-        expected_responses: ["1", "çekirdek", "merkez"]
+        expected_responses: ["çekirdek", "merkez"]
         next_action: "CONTINUE"
       
       - step: 3
@@ -35,7 +35,7 @@ course_sections:
         Çekirdekte üretilen enerji, önce radyatif bölgede ışınım yoluyla, sonra konvektif bölgede konveksiyon yoluyla taşınır. En sonunda fotosferden uzaya yayılır.
 
         Sence bu enerji Dünya'ya ulaşmak için ne kadar süre yolculuk yapar?"
-        expected_responses: ["1", "8 dakika", "8", "sekiz"]
+        expected_responses: ["8 dakika", "8", "sekiz"]
         next_action: "CONTINUE"
       
       - step: 4
@@ -48,28 +48,28 @@ course_sections:
         - Enerjisi Dünya'ya 8 dakikada ulaşır
 
         Güneş olmasaydı Dünya'da neler olurdu?"
-        expected_responses: ["1", "yaşam olmazdı", "soğuk", "karanlık", "enerji"]
+        expected_responses: ["yaşam olmazdı", "soğuk", "karanlık", "enerji"]
         next_action: "NEXT"
 
   - sub_title: "2. İç Gezegenler: Karasal Dünyalar"
     steps:
       - step: 1
         content: "İç gezegenleri öğrenmeye başlayalım. İç gezegenler, Güneş'e en yakın dört gezegeni kapsar. Bunlar sırasıyla hangi gezegenlerdir?"
-        expected_responses: ["1", "merkür", "venüs", "dünya", "mars"]
+        expected_responses: ["merkür", "venüs", "dünya", "mars"]
         next_action: "CONTINUE"
       - step: 2
         content: "Merkür'ü inceleyelim. Merkür, Güneş'e en yakın ve en küçük gezegendir. Gündüz ve gece sıcaklıkları arasında çok büyük fark vardır. Bunun nedeni ne olabilir?"
-        expected_responses: ["1", "atmosfer", "koruma", "yakınlık", "güneş"]
+        expected_responses: ["atmosfer", "koruma", "yakınlık", "güneş"]
         next_action: "CONTINUE"
       - step: 3
         content: "Venüs'ün en ilginç özelliği nedir? İpucu: Sıcaklıkla ilgili bir rekor kırıyor."
-        expected_responses: ["1", "en sıcak", "462", "sera etkisi"]
+        expected_responses: ["en sıcak", "462", "sera etkisi"]
         next_action: "CONTINUE"
       - step: 4
         content: "Dünya'yı diğer gezegenlerden ayıran en önemli özellik nedir?"
-        expected_responses: ["1", "yaşam", "su", "atmosfer", "oksijen"]
+        expected_responses: ["yaşam", "su", "atmosfer", "oksijen"]
         next_action: "CONTINUE"
       - step: 5
         content: "Mars'a neden 'Kızıl Gezegen' deniyor?"
-        expected_responses: ["1", "demir", "kırmızı", "oksit", "toprak"]
+        expected_responses: ["demir", "kırmızı", "oksit", "toprak"]
         next_action: "FINISH"
