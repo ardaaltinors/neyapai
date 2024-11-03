@@ -91,59 +91,78 @@ with col2:
     if st.session_state.course_started:
         st.sidebar.title("Course Progress")
         
-        # Get course content and current progress
         try:
             # Get current course state
             response_state = requests.get(f"{API_BASE_URL}/llm/course-state/default_user")
             course_state = response_state.json()
             current_section = course_state.get("current_section", 0)
-            current_step = course_state.get("current_step", 0)
+            current_step = course_state.get("current_step", -1)
             
             # Get course content
             response = requests.get(f"{API_BASE_URL}/llm/course-content/solar_system")
             course_data = response.json()
             
-            # Progress bars
-            total_sections = len(course_data["sections"])
-            section_progress = (current_section + 1) / total_sections
+            # Kurs tamamlanma kontrolü
+            is_completed = False
+            if current_step >= 0:
+                current_section_data = course_data["sections"][current_section]
+                if current_step < len(current_section_data["steps"]):
+                    current_step_obj = current_section_data["steps"][current_step]
+                    is_completed = (
+                        current_step_obj.get("next_action") == "FINISH" and
+                        "Tebrikler! 🎉 Kursu başarıyla tamamladın" in st.session_state.messages[-1].get("content", "")
+                    )
             
-            current_section_data = course_data["sections"][current_section]
-            total_steps = len(current_section_data["steps"])
-            step_progress = (current_step + 1) / total_steps
+            # Kurs tamamlandıysa
+            if is_completed or course_state.get("completed", False):
+                st.sidebar.success("🎉 Kurs Tamamlandı!")
+                st.sidebar.balloons()  # Kutlama efekti
+                if st.sidebar.button("Yeni Kursa Başla"):
+                    st.session_state.course_started = False
+                    st.rerun()
             
-            st.sidebar.subheader("Overall Progress")
-            st.sidebar.progress(section_progress)
-            
-            st.sidebar.subheader("Current Section Progress")
-            st.sidebar.progress(step_progress)
-            
-            # Display sections with status
-            for section in course_data["sections"]:
-                section_index = section["order"] - 1
-                if section_index < current_section:
-                    st.sidebar.success(f"✅ {section['title']}")
-                elif section_index == current_section:
-                    steps_text = f"(Step {current_step + 1}/{total_steps})"
-                    st.sidebar.info(f"📚 {section['title']} {steps_text}")
-                else:
-                    st.sidebar.text(f"⏳ {section['title']}")
-            
-            # Display current content
-            if current_section_data:
-                with st.sidebar.expander("Current Section Details"):
-                    st.markdown(current_section_data["content"])
-                    
-                if "Öğrenme Hedefleri:" in current_section_data["content"]:
-                    with st.sidebar.expander("Learning Objectives"):
-                        objectives = current_section_data["content"].split("Öğrenme Hedefleri:")[1].strip()
-                        st.markdown(objectives)
-            
-            # Display completion status
-            if current_section >= total_sections - 1 and current_step >= total_steps - 1:
-                st.sidebar.success("🎉 Course Completed!")
+            # Kurs devam ediyorsa
             else:
-                remaining_sections = total_sections - current_section
-                st.sidebar.info(f"📝 {remaining_sections} sections remaining")
+                if current_step >= 0:
+                    # Progress bars
+                    total_sections = len(course_data["sections"])
+                    section_progress = (current_section + 1) / total_sections
+                    
+                    current_section_data = course_data["sections"][current_section]
+                    total_steps = len(current_section_data["steps"])
+                    step_progress = (current_step + 1) / total_steps
+                    
+                    st.sidebar.subheader("Overall Progress")
+                    st.sidebar.progress(section_progress)
+                    
+                    st.sidebar.subheader("Current Section Progress")
+                    st.sidebar.progress(step_progress)
+                    
+                    # Display sections with status
+                    for section in course_data["sections"]:
+                        section_index = section["order"] - 1
+                        if section_index < current_section:
+                            st.sidebar.success(f"✅ {section['title']}")
+                        elif section_index == current_section:
+                            steps_text = f"(Step {current_step + 1}/{total_steps})"
+                            st.sidebar.info(f"📚 {section['title']} {steps_text}")
+                        else:
+                            st.sidebar.text(f"⏳ {section['title']}")
+                    
+                    # Display current content
+                    if current_section_data:
+                        with st.sidebar.expander("Current Section Details"):
+                            if current_step < len(current_section_data["steps"]):
+                                current_step_content = current_section_data["steps"][current_step]["content"]
+                                st.markdown(current_step_content)
+                    
+                    # Display remaining sections
+                    remaining_sections = total_sections - current_section
+                    if remaining_sections > 0:
+                        st.sidebar.info(f"📝 {remaining_sections} sections remaining")
+                else:
+                    st.sidebar.info("Kursa başlamak için 'evet' yazın.")
                     
         except Exception as e:
+            logger.error(f"Error in sidebar: {str(e)}")  # Log the error
             st.sidebar.error(f"Error loading course content: {str(e)}")

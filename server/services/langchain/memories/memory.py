@@ -23,12 +23,12 @@ def build_memory(username: str, history: list):
                 memory.messages.append(AIMessage(content=content))
     except Exception as e:
         logger.error(f"Error building memory: {str(e)}")
-        # Return empty memory if there's an error
         memory = ChatMessageHistory()
     
     return ConversationBufferMemory(
         chat_memory=memory,
         memory_key="chat_history",
         output_key="output",
-        return_messages=True
+        return_messages=True,
+        input_key="input"
     )

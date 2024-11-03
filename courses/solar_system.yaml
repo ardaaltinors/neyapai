@@ -1,30 +1,7 @@
-title: "Güneş Sistemi"
-description: "Güneş sistemi ve gezegenler hakkında kapsamlı bir keşif yolculuğu"
-sections:
-  - title: "1. Güneş: Sistemimizin Kalbi"
-    content: |
-      Güneş, güneş sistemimizin merkezinde yer alan devasa bir yıldızdır. Sistemimizin tüm kütlesinin %99.86'sını oluşturur.
-
-      Temel Özellikleri:
-      - Yüzey sıcaklığı: 5,500°C
-      - Çekirdek sıcaklığı: 15 milyon °C
-      - Çap: 1.4 milyon kilometre (Dünya'nın 109 katı)
-      - Yaş: 4.6 milyar yıl
-      - Kütlesi: 2 x 10^30 kilogram (Dünya'nın 333,000 katı)
-
-      Güneş'in Yapısı:
-      1. Çekirdek: Nükleer füzyonun gerçekleştiği merkezi bölge
-      2. Radyatif Bölge: Enerjinin ışınım yoluyla taşındığı katman
-      3. Konvektif Bölge: Enerjinin konveksiyon yoluyla taşındığı dış katman
-      4. Fotosfer: Görünür yüzey
-      5. Kromosfer: Güneş atmosferinin alt katmanı
-      6. Korona: Güneş'in dış atmosferi
-
-      Öğrenme Hedefleri:
-      - Güneş'in temel özelliklerini kavrama
-      - Güneş'in iç yapısını anlama
-      - Güneş enerjisinin oluşum sürecini öğrenme
-    order: 1
+course_title: "Güneş Sistemi"
+course_description: "Güneş sistemi ve gezegenler hakkında kapsamlı bir keşif yolculuğu"
+course_sections:
+  - sub_title: "1. Güneş: Sistemimizin Kalbi"
     steps:
       - step: 1
         content: "Güneş Sistemi dersimize hoş geldin! Bugün ilk olarak sistemimizin kalbi olan Güneş'i öğreneceğiz. 
@@ -32,7 +9,7 @@ sections:
         Güneş, sistemimizin merkezinde yer alan devasa bir yıldızdır ve sistemin kütlesinin %99.86'sını oluşturur. Yüzey sıcaklığı 5,500°C olan Güneş'in çekirdeğinde sıcaklık 15 milyon °C'ye ulaşır. Çapı 1.4 milyon kilometre olup, bu Dünya'nın 109 katıdır.
 
         Bu muazzam enerji kaynağının sırrı nedir? Sence Güneş bu enerjiyi nasıl üretiyor?"
-        expected_responses: ["füzyon", "nükleer", "hidrojen", "helyum", "çekirdek"]
+        expected_responses: ["1", "füzyon", "nükleer", "hidrojen", "helyum", "çekirdek"]
         next_action: "CONTINUE"
       
       - step: 2
@@ -47,7 +24,7 @@ sections:
         6. Korona: Güneş'in dış atmosferi
 
         Bu katmanlardan hangisinde nükleer füzyon gerçekleşir?"
-        expected_responses: ["çekirdek", "merkez"]
+        expected_responses: ["1", "çekirdek", "merkez"]
         next_action: "CONTINUE"
       
       - step: 3
@@ -56,7 +33,7 @@ sections:
         Çekirdekte üretilen enerji, önce radyatif bölgede ışınım yoluyla, sonra konvektif bölgede konveksiyon yoluyla taşınır. En sonunda fotosferden uzaya yayılır.
 
         Sence bu enerji Dünya'ya ulaşmak için ne kadar süre yolculuk yapar?"
-        expected_responses: ["8 dakika", "8", "sekiz"]
+        expected_responses: ["1", "8 dakika", "8", "sekiz"]
         next_action: "CONTINUE"
       
       - step: 4
@@ -69,114 +46,28 @@ sections:
         - Enerjisi Dünya'ya 8 dakikada ulaşır
 
         Güneş olmasaydı Dünya'da neler olurdu?"
-        expected_responses: ["yaşam olmazdı", "soğuk", "karanlık", "enerji"]
+        expected_responses: ["1", "yaşam olmazdı", "soğuk", "karanlık", "enerji"]
         next_action: "NEXT"
 
-  - title: "2. İç Gezegenler: Karasal Dünyalar"
-    content: |
-      İç gezegenler, Güneş'e en yakın dört gezegeni kapsar. Bu gezegenler karasal (terrestrial) yapıdadır.
-
-      Merkür:
-      - Güneş'e en yakın gezegen
-      - En küçük gezegen (Plüton artık gezegen sayılmıyor)
-      - Yüzey sıcaklığı: Gündüz 430°C, gece -180°C
-      - Atmosferi yok denecek kadar az
-      - Bir Merkür günü 176 Dünya günü
-
-      Venüs:
-      - "Dünya'nın ikizi" olarak bilinir (boyut açısından)
-      - En sıcak gezegen (yüzey sıcaklığı 462°C)
-      - Sera etkisinin en yoğun görüldüğü gezegen
-      - Geriye doğru dönen tek gezegen
-      
-      Dünya:
-      - Bilinen yaşamın tek evi
-      - Sıvı su bulunduran tek gezegen
-      - Manyetik alanı ve koruyucu atmosferi var
-      - Tek doğal uydusu: Ay
-      
-      Mars:
-      - "Kızıl Gezegen" olarak bilinir
-      - Geçmişte su ve yaşam potansiyeli
-      - İki uydusu var: Phobos ve Deimos
-      - İnsanlığın gelecekteki muhtemel evi
-
-      Öğrenme Hedefleri:
-      - İç gezegenlerin ortak özelliklerini kavrama
-      - Her gezegenin kendine has özelliklerini öğrenme
-      - Gezegenleri karşılaştırabilme
-    order: 2
+  - sub_title: "2. İç Gezegenler: Karasal Dünyalar"
     steps:
       - step: 1
         content: "İç gezegenleri öğrenmeye başlayalım. İç gezegenler, Güneş'e en yakın dört gezegeni kapsar. Bunlar sırasıyla hangi gezegenlerdir?"
-        expected_responses: ["merkür", "venüs", "dünya", "mars"]
+        expected_responses: ["1", "merkür", "venüs", "dünya", "mars"]
         next_action: "CONTINUE"
       - step: 2
         content: "Merkür'ü inceleyelim. Merkür, Güneş'e en yakın ve en küçük gezegendir. Gündüz ve gece sıcaklıkları arasında çok büyük fark vardır. Bunun nedeni ne olabilir?"
-        expected_responses: ["atmosfer", "koruma", "yakınlık", "güneş"]
+        expected_responses: ["1", "atmosfer", "koruma", "yakınlık", "güneş"]
         next_action: "CONTINUE"
       - step: 3
         content: "Venüs'ün en ilginç özelliği nedir? İpucu: Sıcaklıkla ilgili bir rekor kırıyor."
-        expected_responses: ["en sıcak", "462", "sera etkisi"]
+        expected_responses: ["1", "en sıcak", "462", "sera etkisi"]
         next_action: "CONTINUE"
       - step: 4
         content: "Dünya'yı diğer gezegenlerden ayıran en önemli özellik nedir?"
-        expected_responses: ["yaşam", "su", "atmosfer", "oksijen"]
+        expected_responses: ["1", "yaşam", "su", "atmosfer", "oksijen"]
         next_action: "CONTINUE"
       - step: 5
         content: "Mars'a neden 'Kızıl Gezegen' deniyor?"
-        expected_responses: ["demir", "kırmızı", "oksit", "toprak"]
-        next_action: "NEXT"
-
-  - title: "3. Dış Gezegenler: Gaz Devleri"
-    content: |
-      Dış gezegenler, asteroid kuşağının ötesinde yer alan dört büyük gezegeni kapsar.
-
-      Jüpiter:
-      - Güneş sisteminin en büyük gezegeni
-      - Büyük Kırmızı Leke: 400 yıldır süren fırtına
-      - 79 bilinen uydusu var
-      - Güçlü manyetik alan
-      
-      Satürn:
-      - Halka sistemiyle ünlü
-      - Yoğunluğu sudan az
-      - 82 bilinen uydusu var
-      - En büyük uydusu Titan, atmosfere sahip
-      
-      Uranüs:
-      - Yan yatmış şekilde döner
-      - Soğuk bir gaz devi (-224°C)
-      - 27 bilinen uydusu var
-      
-      Neptün:
-      - En uzak gezegen
-      - Güçlü rüzgarlar (2,100 km/saat)
-      - 14 bilinen uydusu var
-
-      Öğrenme Hedefleri:
-      - Dış gezegenlerin yapısal özelliklerini anlama
-      - Gaz devlerinin ortak özelliklerini kavrama
-      - Uydu sistemlerinin önemini öğrenme
-    order: 3
-    steps:
-      - step: 1
-        content: "Dış gezegenler neden 'gaz devi' olarak adlandırılıyor?"
-        expected_responses: ["gaz", "büyük", "hidrojen", "helyum"]
-        next_action: "CONTINUE"
-      - step: 2
-        content: "Jüpiter'in üzerindeki Büyük Kırmızı Leke nedir?"
-        expected_responses: ["fırtına", "kasırga", "girdap"]
-        next_action: "CONTINUE"
-      - step: 3
-        content: "Satürn'ü diğer gezegenlerden ayıran özellik nedir?"
-        expected_responses: ["halka", "halkalar", "ring"]
-        next_action: "CONTINUE"
-      - step: 4
-        content: "Uranüs'ün dönüş ekseni diğer gezegenlerden nasıl farklıdır?"
-        expected_responses: ["yan", "yatık", "eğik"]
-        next_action: "CONTINUE"
-      - step: 5
-        content: "Neptün'ün en karakteristik özelliği nedir?"
-        expected_responses: ["rüzgar", "fırtına", "hız"]
-        next_action: "NEXT"
+        expected_responses: ["1", "demir", "kırmızı", "oksit", "toprak"]
+        next_action: "FINISH"

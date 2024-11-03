@@ -5,14 +5,13 @@ class Step(BaseModel):
     step: int
     content: str
     expected_responses: Optional[List[str]] = None
-    next_action: str  # "CONTINUE", "NEXT", "REVIEW"
+    next_action: str  # "CONTINUE", "NEXT", "FINISH"
 
 class CourseSection(BaseModel):
     title: str
-    content: str
+    content: str = ""
     order: int
     steps: List[Step]
-    resources: Optional[List[str]] = []
     current_step: int = 0
 
 class Course(BaseModel):

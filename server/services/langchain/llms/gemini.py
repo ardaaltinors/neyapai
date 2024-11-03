@@ -1,9 +1,15 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
-import os
+from server.config import settings
 
 def build_llm():
-    api_key = os.getenv("GEMINI_API_KEY")
-    print("API KEY", api_key)
-    return ChatGoogleGenerativeAI(api_key=api_key, model="gemini-1.5-flash", temperature=0, verbose=True)
+    return ChatGoogleGenerativeAI(
+        api_key=settings.GEMINI_API_KEY,
+        model="gemini-1.5-pro",
+        temperature=0.7,
+        top_p=0.8,
+        top_k=40,
+        max_output_tokens=2048,
+        verbose=True
+    )
 
 build_llm()
