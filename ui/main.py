@@ -15,7 +15,7 @@ def start_course(course_id: str, user_id: str = "default_user"):
         response.raise_for_status()
         return response.json()
     except Exception as e:
-        st.error(f"Error starting course: {str(e)}")
+        st.error(f"Kurs başlatılırken hata oluştu: {str(e)}")
         return None
 
 # Initialize session state
@@ -35,7 +35,7 @@ st.set_page_config(layout="wide")
 col1, col2 = st.columns([3, 1])
 
 with col1:
-    st.title("Interactive Course Assistant")
+    st.title("İnteraktif Kurs Asistanı")
 
     # Course selection and start
     if not st.session_state.course_started:
@@ -51,14 +51,14 @@ with col1:
             }
             
             selected_title = st.selectbox(
-                "Select a course:",
+                "Bir kurs seçin:",
                 options=list(course_options.keys())
             )
             
             # Get selected course ID
             selected_course_id = course_options[selected_title]
             
-            if st.button("Start Course"):
+            if st.button("Kursa Başla"):
                 result = start_course(selected_course_id)
                 if result:
                     welcome_message = result["message"]
@@ -69,7 +69,7 @@ with col1:
                     st.rerun()
                 
         except Exception as e:
-            st.error(f"Error loading courses: {str(e)}")
+            st.error(f"Kurslar yüklenirken hata oluştu: {str(e)}")
 
     # Chat interface
     if st.session_state.course_started:
@@ -79,7 +79,7 @@ with col1:
                 st.markdown(message["content"])
         
         # Chat input
-        if prompt := st.chat_input("Type your message here..."):
+        if prompt := st.chat_input("Mesajınızı buraya yazın..."):
             # Add user message to chat
             st.session_state.messages.append({
                 "role": "user",
@@ -103,12 +103,12 @@ with col1:
                 st.rerun()
                 
             except Exception as e:
-                st.error(f"Error: {str(e)}")
+                st.error(f"Hata: {str(e)}")
 
 # Sidebar with course progress
 with col2:
     if st.session_state.course_started:
-        st.sidebar.title("Course Progress")
+        st.sidebar.title("Kurs İlerlemesi")
         
         try:
             # Get current course state
@@ -153,10 +153,10 @@ with col2:
                         total_steps = len(current_section_data["steps"])
                         step_progress = (current_step + 1) / total_steps
                         
-                        st.sidebar.subheader("Overall Progress")
+                        st.sidebar.subheader("Genel İlerleme")
                         st.sidebar.progress(section_progress)
                         
-                        st.sidebar.subheader("Current Section Progress")
+                        st.sidebar.subheader("Mevcut Bölüm İlerlemesi")
                         st.sidebar.progress(step_progress)
                         
                         # Display sections with status
@@ -165,7 +165,7 @@ with col2:
                             if section_index < current_section:
                                 st.sidebar.success(f"✅ {section['title']}")
                             elif section_index == current_section:
-                                steps_text = f"(Step {current_step + 1}/{total_steps})"
+                                steps_text = f"(Adım {current_step + 1}/{total_steps})"
                                 st.sidebar.info(f"📚 {section['title']} {steps_text}")
                             else:
                                 st.sidebar.text(f"⏳ {section['title']}")
@@ -173,10 +173,10 @@ with col2:
                         # Display remaining sections
                         remaining_sections = total_sections - current_section
                         if remaining_sections > 0:
-                            st.sidebar.info(f"📝 {remaining_sections} sections remaining")
+                            st.sidebar.info(f"📝 {remaining_sections} bölüm kaldı")
                     else:
                         st.sidebar.info("Kursa başlamak için 'evet' yazın.")
                     
         except Exception as e:
-            logger.error(f"Error in sidebar: {str(e)}")  # Log the error
-            st.sidebar.error(f"Error loading course content: {str(e)}")
+            logger.error(f"Sidebar hatası: {str(e)}")  # Log the error
+            st.sidebar.error(f"Kurs içeriği yüklenirken hata oluştu: {str(e)}")
