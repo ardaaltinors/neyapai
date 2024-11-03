@@ -7,6 +7,7 @@ from server.services.course_loader import load_course_content
 from server.database import db
 from datetime import datetime
 import logging
+import os
 
 router = APIRouter(prefix="/llm", tags=["LLM"])
 
@@ -396,3 +397,33 @@ async def get_course_state(user_id: str):
         "current_section": course_state.get("current_section", 0),
         "current_step": course_state.get("current_step", 0),
     }
+
+
+@router.get("/available-courses")
+async def get_available_courses():
+    """
+    Get list of available courses
+    """
+    try:
+        # courses klasöründeki tüm yaml dosyalarını listele
+        courses_dir = "courses"
+        course_files = [f.replace('.yaml', '') for f in os.listdir(courses_dir) if f.endswith('.yaml')]
+        
+        # Her kurs için başlık ve açıklamayı al
+        courses = []
+        for course_id in course_files:
+            try:
+                course = load_course_content(course_id)
+                courses.append({
+                    "id": course_id,
+                    "title": course.title,
+                    "description": course.description
+                })
+            except Exception as e:
+                logger.error(f"Error loading course {course_id}: {str(e)}")
+                continue
+                
+        return courses
+    except Exception as e:
+        logger.error(f"Error getting available courses: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))

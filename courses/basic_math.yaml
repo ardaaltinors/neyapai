@@ -1,0 +1,24 @@
+course_title: "Temel Matematik"
+course_description: "Temel matematik kavramları ve işlemler"
+course_sections:
+  - sub_title: "1. Sayılar ve İşlemler"
+    steps:
+      - step: 1
+        content: "Matematik dersimize hoş geldin! Bugün sayılar ve temel işlemleri öğreneceğiz.
+
+        Matematiğin temeli sayılardır. Günlük hayatta sürekli sayılarla karşılaşırız.
+        
+        Temel işlemler nelerdir? Haydi birlikte sayalım."
+        expected_responses: ["1", "toplama", "çıkarma", "çarpma", "bölme"]
+        next_action: "CONTINUE"
+      
+      - step: 2
+        content: "Harika! Temel işlemler:
+        1. Toplama (+)
+        2. Çıkarma (-)
+        3. Çarpma (×)
+        4. Bölme (÷)
+        
+        5 + 3 = ? Bu işlemin sonucu kaçtır?"
+        expected_responses: ["8", "sekiz"]
+        next_action: "FINISH"

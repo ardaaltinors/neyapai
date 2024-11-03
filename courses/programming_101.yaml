@@ -1,0 +1,23 @@
+course_title: "Programlama 101"
+course_description: "Python programlama diline giriş"
+course_sections:
+  - sub_title: "1. Python'a Giriş"
+    steps:
+      - step: 1
+        content: "Python programlama diline hoş geldin! 
+
+        Python, öğrenmesi kolay ve güçlü bir programlama dilidir.
+        
+        İlk olarak, ekrana 'Merhaba Dünya!' yazdıralım.
+        Python'da bunu nasıl yapacağımızı tahmin edebilir misin?"
+        expected_responses: ["1", "print", "print()", "print('Merhaba Dünya!')"]
+        next_action: "CONTINUE"
+      
+      - step: 2
+        content: "Harika! print() fonksiyonu kullanarak ekrana yazı yazdırabiliriz.
+
+        print('Merhaba Dünya!')
+        
+        Şimdi bir değişken oluşturalım. Değişken isimleri nasıl olmalıdır?"
+        expected_responses: ["1", "harf", "rakam", "alt çizgi", "_"]
+        next_action: "FINISH"
